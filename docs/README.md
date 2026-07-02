@@ -90,6 +90,9 @@ REDIS_URL=<redis-url>
 
 No Render Blueprint, `REDIS_HOST` e `REDIS_PORT` sao preenchidos automaticamente e o Django monta a URL interna.
 
+O banco PostgreSQL usa `plan: basic-256mb` e `diskSizeGB: 1` no `render.yaml`.
+Planos legados como `starter` nao sao aceitos para novos bancos no Render.
+
 Variaveis recomendadas:
 
 ```text
