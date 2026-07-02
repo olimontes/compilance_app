@@ -7,9 +7,12 @@ migrations ou endpoints de dominio da plataforma.
 
 ## Stack
 
-- Django + Django REST Framework
+- Backend em Django + Django REST Framework
+- Frontend planejado em TypeScript
 - PostgreSQL em producao
-- Redis + Celery para jobs
+- Redis + Celery para jobs assincronos
+- Gunicorn em producao
+- WhiteNoise para static files do Django
 - Sentry opcional para erros em producao
 - Swagger em `/api/docs/`
 - Health check em `/api/health/`
@@ -23,9 +26,11 @@ migrations ou endpoints de dominio da plataforma.
 - Docker Compose com PostgreSQL e Redis
 - Blueprint do Render
 - Guia de Git Flow em `docs/GITFLOW.md`
+- README principal na raiz do repositorio
 
 ## O que ainda nao existe
 
+- Frontend TypeScript
 - Tabelas de negocio
 - Apps de dominio
 - Endpoints da plataforma
@@ -57,11 +62,20 @@ Depois acesse:
 
 ## Deploy
 
-O projeto ja inclui:
+O deploy recomendado para a stack atual e Render, porque o projeto ja inclui:
 
 - `Dockerfile` para deploy via container
 - `Procfile` para plataformas estilo Heroku/Railway
-- `render.yaml` para Render Blueprint
+- `render.yaml` para Render Blueprint com web service, worker, PostgreSQL e Redis
+- health check em `/api/health/`
+- migrations no pre-deploy
+
+Para o frontend TypeScript, use uma das abordagens:
+
+- Render Static Site, se o frontend for SPA com Vite/React e voce quiser manter tudo na mesma plataforma.
+- Vercel, se o frontend for Next.js ou se previews de pull request e experiencia frontend forem prioridade.
+
+Deploy de producao deve usar a branch `main`.
 
 Variaveis obrigatorias em producao:
 
@@ -69,16 +83,18 @@ Variaveis obrigatorias em producao:
 DJANGO_ENV=production
 DJANGO_DEBUG=false
 DJANGO_SECRET_KEY=<secret>
-DJANGO_ALLOWED_HOSTS=<seu-dominio>
+DJANGO_ALLOWED_HOSTS=<api-domain>
 DATABASE_URL=<postgres-url>
 REDIS_URL=<redis-url>
 ```
 
 No Render Blueprint, `REDIS_HOST` e `REDIS_PORT` sao preenchidos automaticamente e o Django monta a URL interna.
 
-Variavel recomendada:
+Variaveis recomendadas:
 
 ```text
+DJANGO_CORS_ALLOWED_ORIGINS=<frontend-url>
+DJANGO_CSRF_TRUSTED_ORIGINS=<frontend-url>
 SENTRY_DSN=<dsn-do-projeto-sentry>
 ```
 
