@@ -123,6 +123,10 @@ REDIS_URL=<redis-url>
 No Blueprint atual, `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT` e
 `DJANGO_SECRET_KEY` sao preenchidos automaticamente pelo Render.
 
+O banco usa o plano `basic-256mb` com `diskSizeGB: 1` no `render.yaml`, que e o
+menor plano pago flexivel atual para novos bancos Postgres no Render. Planos
+legados como `starter` nao sao aceitos para novos bancos.
+
 Variaveis recomendadas:
 
 ```text
