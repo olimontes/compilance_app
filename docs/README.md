@@ -68,10 +68,14 @@ O deploy gratuito recomendado para a stack atual e Render, porque o projeto ja i
 - `Procfile` para plataformas estilo Heroku/Railway
 - `render.yaml` para Render Blueprint com web service, PostgreSQL e Redis/Key Value gratuitos
 - health check em `/api/health/`
-- migrations no pre-deploy
+- migrations executadas no start do servico
 
 O Blueprint gratuito nao cria background worker Celery, porque workers nao possuem
 plano `free` no Render.
+
+O Blueprint gratuito tambem nao usa `preDeployCommand`, porque esse recurso nao
+esta disponivel para web services `free` no Render. As migrations rodam no
+`startCommand`, antes do Gunicorn.
 
 Para o frontend TypeScript, use uma das abordagens:
 
@@ -106,6 +110,7 @@ Limitacoes importantes:
 - o banco PostgreSQL gratuito expira 30 dias apos a criacao;
 - o Redis/Key Value gratuito nao persiste dados em disco;
 - workers Celery exigem plano pago no Render.
+- `preDeployCommand` exige sair do plano gratuito.
 
 Variaveis recomendadas:
 
