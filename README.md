@@ -81,11 +81,15 @@ Blueprint gratuito, criando:
 - banco PostgreSQL free;
 - Redis/Key Value free;
 - health check;
-- comando de migrations antes do deploy.
+- migrations executadas no start do servico.
 
 No modo gratuito, o Blueprint nao cria background worker Celery, porque workers
 nao possuem instancia `free` no Render. Quando houver jobs assincronos reais,
 crie um worker pago ou mova os jobs para outro provedor gratuito.
+
+O plano free tambem nao aceita `preDeployCommand`, entao o Blueprint executa
+`python manage.py migrate --noinput` dentro do `startCommand`, antes de iniciar
+o Gunicorn. Em um plano pago, o ideal e voltar a usar `preDeployCommand`.
 
 Para o frontend TypeScript, existem duas boas opcoes:
 
@@ -112,7 +116,7 @@ Decisao recomendada para este projeto:
 4. Conecte o repositorio `olimontes/compilance_app`.
 5. Selecione a branch `main`.
 6. Aplique o Blueprint usando o arquivo `render.yaml`.
-7. Aguarde o build, migrations e start dos servicos.
+7. Aguarde o build e start dos servicos.
 8. Valide `/api/health/`, `/admin/` e `/api/docs/`.
 
 Variaveis obrigatorias em producao:
@@ -143,6 +147,7 @@ Limitacoes importantes do plano gratuito do Render:
 - o Postgres free expira 30 dias apos a criacao;
 - o Key Value free nao persiste dados em disco;
 - workers Celery nao estao disponiveis no plano free.
+- `preDeployCommand` nao esta disponivel no plano free.
 
 Para evitar cobrancas acidentais, nao selecione planos `starter`, `basic-*`,
 `standard`, `pro` ou similares enquanto o objetivo for custo zero.
@@ -221,4 +226,4 @@ Para detalhes de commits, branches e pull requests, veja `docs/GITFLOW.md`.
 2. Acesse `/admin/`.
 3. Acesse `/api/docs/`.
 4. Verifique logs do web service e worker.
-5. Confirme que migrations foram executadas no deploy.
+5. Confirme nos logs que `python manage.py migrate --noinput` executou antes do Gunicorn.
