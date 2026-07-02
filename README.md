@@ -31,6 +31,7 @@ serao implementados.
 - `render.yaml` com Blueprint gratuito para web service, Postgres e Redis/Key Value.
 - `Procfile` para plataformas estilo Heroku/Railway.
 - Guia de Git Flow em `docs/GITFLOW.md`.
+- Plano de execucao da camada de dados em `docs/PLANO_DADOS.md`.
 
 ## O que ainda nao existe
 
