@@ -22,6 +22,7 @@ migrations ou endpoints de dominio da plataforma.
 - Celery configurado para quando os jobs forem adicionados
 - Docker Compose com PostgreSQL e Redis
 - Blueprint do Render
+- Guia de Git Flow em `docs/GITFLOW.md`
 
 ## O que ainda nao existe
 
