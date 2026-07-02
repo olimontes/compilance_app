@@ -32,7 +32,6 @@ serao implementados.
 - `Procfile` para plataformas estilo Heroku/Railway.
 - Guia de Git Flow em `docs/GITFLOW.md`.
 - Plano de execucao da camada de dados em `docs/PLANO_DADOS.md`.
-- Kanban operacional em `docs/KANBAN.md`.
 
 ## O que ainda nao existe
 
