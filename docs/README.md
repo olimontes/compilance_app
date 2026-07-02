@@ -24,7 +24,7 @@ migrations ou endpoints de dominio da plataforma.
 - Sentry opcional para capturar erros em producao
 - Celery configurado para quando os jobs forem adicionados
 - Docker Compose com PostgreSQL e Redis
-- Blueprint do Render
+- Blueprint gratuito do Render
 - Guia de Git Flow em `docs/GITFLOW.md`
 - README principal na raiz do repositorio
 
@@ -62,13 +62,16 @@ Depois acesse:
 
 ## Deploy
 
-O deploy recomendado para a stack atual e Render, porque o projeto ja inclui:
+O deploy gratuito recomendado para a stack atual e Render, porque o projeto ja inclui:
 
 - `Dockerfile` para deploy via container
 - `Procfile` para plataformas estilo Heroku/Railway
-- `render.yaml` para Render Blueprint com web service, worker, PostgreSQL e Redis
+- `render.yaml` para Render Blueprint com web service, PostgreSQL e Redis/Key Value gratuitos
 - health check em `/api/health/`
 - migrations no pre-deploy
+
+O Blueprint gratuito nao cria background worker Celery, porque workers nao possuem
+plano `free` no Render.
 
 Para o frontend TypeScript, use uma das abordagens:
 
@@ -90,8 +93,19 @@ REDIS_URL=<redis-url>
 
 No Render Blueprint, `REDIS_HOST` e `REDIS_PORT` sao preenchidos automaticamente e o Django monta a URL interna.
 
-O banco PostgreSQL usa `plan: basic-256mb` e `diskSizeGB: 1` no `render.yaml`.
-Planos legados como `starter` nao sao aceitos para novos bancos no Render.
+O `render.yaml` atual usa somente planos gratuitos:
+
+- web service `free`;
+- PostgreSQL `free`;
+- Redis/Key Value `free`;
+- sem worker Celery.
+
+Limitacoes importantes:
+
+- o web service gratuito pode dormir quando fica sem trafego;
+- o banco PostgreSQL gratuito expira 30 dias apos a criacao;
+- o Redis/Key Value gratuito nao persiste dados em disco;
+- workers Celery exigem plano pago no Render.
 
 Variaveis recomendadas:
 

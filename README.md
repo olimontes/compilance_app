@@ -17,7 +17,8 @@ serao implementados.
 - Static files do Django: WhiteNoise.
 - Frontend planejado: TypeScript, preferencialmente React com Vite ou Next.js.
 - Observabilidade: Sentry opcional.
-- Deploy recomendado: Render para backend, Postgres, Redis e worker.
+- Deploy gratuito recomendado: Render para backend, Postgres e Redis/Key Value.
+- Deploy de producao recomendado: Render pago com worker Celery e Postgres persistente.
 - Deploy opcional do frontend: Render Static Site ou Vercel.
 
 ## O que ja existe
@@ -27,7 +28,7 @@ serao implementados.
 - Swagger em `/api/docs/`.
 - Dockerfile para deploy via container.
 - Docker Compose com API, worker, PostgreSQL e Redis para ambiente local.
-- `render.yaml` com Blueprint para web service, worker, Postgres e Redis.
+- `render.yaml` com Blueprint gratuito para web service, Postgres e Redis/Key Value.
 - `Procfile` para plataformas estilo Heroku/Railway.
 - Guia de Git Flow em `docs/GITFLOW.md`.
 
@@ -72,16 +73,19 @@ Esse comando sobe:
 
 ## Estrategia de deploy recomendada
 
-A melhor opcao para a stack atual e usar Render como plataforma principal do
-backend. O projeto ja possui `render.yaml`, entao o deploy pode ser feito como
-Blueprint, criando de uma vez:
+A melhor opcao sem custo para testar a stack atual e usar Render com instancias
+free. O projeto ja possui `render.yaml`, entao o deploy pode ser feito como
+Blueprint gratuito, criando:
 
 - web service Django;
-- background worker Celery;
-- banco PostgreSQL gerenciado;
-- Redis/Key Value gerenciado;
+- banco PostgreSQL free;
+- Redis/Key Value free;
 - health check;
 - comando de migrations antes do deploy.
+
+No modo gratuito, o Blueprint nao cria background worker Celery, porque workers
+nao possuem instancia `free` no Render. Quando houver jobs assincronos reais,
+crie um worker pago ou mova os jobs para outro provedor gratuito.
 
 Para o frontend TypeScript, existem duas boas opcoes:
 
@@ -93,10 +97,12 @@ Para o frontend TypeScript, existem duas boas opcoes:
 
 Decisao recomendada para este projeto:
 
-- Comecar com Render para backend, Postgres, Redis, worker e, se o frontend for
-  SPA com Vite, tambem hospedar o frontend no Render Static Site.
+- Comecar com Render free para backend, Postgres e Redis/Key Value, e, se o
+  frontend for SPA com Vite, tambem hospedar o frontend no Render Static Site.
 - Usar Vercel para o frontend se o app for Next.js, tiver SSR, ou se previews e
   experiencia frontend forem prioridade.
+- Migrar para planos pagos somente quando o projeto precisar de banco persistente
+  de producao, worker Celery ou maior estabilidade.
 
 ## Deploy do backend no Render
 
@@ -123,9 +129,23 @@ REDIS_URL=<redis-url>
 No Blueprint atual, `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT` e
 `DJANGO_SECRET_KEY` sao preenchidos automaticamente pelo Render.
 
-O banco usa o plano `basic-256mb` com `diskSizeGB: 1` no `render.yaml`, que e o
-menor plano pago flexivel atual para novos bancos Postgres no Render. Planos
-legados como `starter` nao sao aceitos para novos bancos.
+O `render.yaml` atual prioriza custo zero:
+
+- web service `free`;
+- Postgres `free`;
+- Redis/Key Value `free`;
+- sem worker Celery.
+
+Limitacoes importantes do plano gratuito do Render:
+
+- o web service pode "dormir" apos um periodo sem trafego e demorar cerca de um
+  minuto para responder na primeira requisicao;
+- o Postgres free expira 30 dias apos a criacao;
+- o Key Value free nao persiste dados em disco;
+- workers Celery nao estao disponiveis no plano free.
+
+Para evitar cobrancas acidentais, nao selecione planos `starter`, `basic-*`,
+`standard`, `pro` ou similares enquanto o objetivo for custo zero.
 
 Variaveis recomendadas:
 
