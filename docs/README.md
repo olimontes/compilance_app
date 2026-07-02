@@ -27,6 +27,7 @@ migrations ou endpoints de dominio da plataforma.
 - Blueprint gratuito do Render
 - Guia de Git Flow em `docs/GITFLOW.md`
 - Plano de execucao de dados em `docs/PLANO_DADOS.md`
+- Kanban operacional em `docs/KANBAN.md`
 - README principal na raiz do repositorio
 
 ## O que ainda nao existe
