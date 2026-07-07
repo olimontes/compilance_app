@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "apps.compliance",
     "apps.evidence",
     "apps.audit",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [
