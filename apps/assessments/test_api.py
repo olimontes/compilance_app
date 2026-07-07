@@ -1,0 +1,106 @@
+from django.contrib.auth import get_user_model
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from apps.organizations.models import Membership, Organization
+
+from .models import (
+    Assessment,
+    AssessmentAnswer,
+    AssessmentDimension,
+    AssessmentFramework,
+    AssessmentQuestion,
+)
+
+
+class AssessmentApiTests(APITestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="alice",
+            email="alice@example.com",
+            password="password-123",
+        )
+        self.organization = Organization.objects.create(name="Acme Corp", slug="acme-corp")
+        Membership.objects.create(user=self.user, organization=self.organization)
+        self.framework = AssessmentFramework.objects.create(
+            code="AIGOV",
+            name="AI Governance Maturity",
+            version="1.0",
+            status=AssessmentFramework.Status.PUBLISHED,
+        )
+        self.dimension = AssessmentDimension.objects.create(
+            framework=self.framework,
+            code="privacy",
+            name="Privacy",
+        )
+        self.question = AssessmentQuestion.objects.create(
+            framework=self.framework,
+            dimension=self.dimension,
+            code="privacy-001",
+            text="Does the organization classify personal data in AI systems?",
+            answer_type=AssessmentQuestion.AnswerType.BOOLEAN,
+        )
+        self.client.force_authenticate(self.user)
+
+    def test_create_assessment(self):
+        response = self.client.post(
+            "/api/assessments/",
+            {
+                "organization": str(self.organization.uuid),
+                "framework": str(self.framework.uuid),
+                "title": "2026 AI governance assessment",
+                "status": Assessment.Status.DRAFT,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assessment = Assessment.objects.get(title="2026 AI governance assessment")
+        self.assertEqual(assessment.created_by, self.user)
+
+    def test_create_assessment_answer(self):
+        assessment = Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=self.user,
+            title="2026 AI governance assessment",
+        )
+
+        response = self.client.post(
+            "/api/assessment-answers/",
+            {
+                "assessment": str(assessment.uuid),
+                "question": str(self.question.uuid),
+                "value": {"answer": True},
+                "score": "1.00",
+                "notes": "Documented.",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        answer = AssessmentAnswer.objects.get(assessment=assessment, question=self.question)
+        self.assertEqual(answer.answered_by, self.user)
+
+    def test_list_assessments_only_returns_user_organizations(self):
+        visible = Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=self.user,
+            title="Visible assessment",
+        )
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        Assessment.objects.create(
+            organization=hidden_org,
+            framework=self.framework,
+            created_by=self.user,
+            title="Hidden assessment",
+        )
+
+        response = self.client.get("/api/assessments/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        titles = {item["title"] for item in response.json()["results"]}
+        self.assertIn(visible.title, titles)
+        self.assertNotIn("Hidden assessment", titles)
+
