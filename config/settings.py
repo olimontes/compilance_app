@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     "apps.ai_assets",
     "apps.assessments",
     "apps.compliance",
+    "apps.evidence",
+    "apps.audit",
 ]
 
 MIDDLEWARE = [
