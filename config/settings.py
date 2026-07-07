@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "apps.health",
     "apps.organizations",
     "apps.ai_assets",
+    "apps.assessments",
 ]
 
 MIDDLEWARE = [
