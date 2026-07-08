@@ -1,21 +1,12 @@
 from rest_framework import serializers
 
-from apps.organizations.models import Membership, Organization, OrganizationUnit
+from apps.common.tenancy import OrganizationMembershipValidatorMixin
+from apps.organizations.models import Organization, OrganizationUnit
 
 from .models import AiTool, AiUseCase, AiVendor
 
 
-class OrganizationScopedSerializerMixin:
-    def validate_organization(self, organization):
-        user = self.context["request"].user
-        if user.is_superuser:
-            return organization
-        if organization.memberships.filter(user=user, status=Membership.Status.ACTIVE).exists():
-            return organization
-        raise serializers.ValidationError("You are not a member of this organization.")
-
-
-class AiVendorSerializer(OrganizationScopedSerializerMixin, serializers.ModelSerializer):
+class AiVendorSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="uuid",
         queryset=Organization.objects.all(),
@@ -27,7 +18,7 @@ class AiVendorSerializer(OrganizationScopedSerializerMixin, serializers.ModelSer
         read_only_fields = ("uuid", "created_at", "updated_at")
 
 
-class AiToolSerializer(OrganizationScopedSerializerMixin, serializers.ModelSerializer):
+class AiToolSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="uuid",
         queryset=Organization.objects.all(),
@@ -64,7 +55,7 @@ class AiToolSerializer(OrganizationScopedSerializerMixin, serializers.ModelSeria
         return attrs
 
 
-class AiUseCaseSerializer(OrganizationScopedSerializerMixin, serializers.ModelSerializer):
+class AiUseCaseSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="uuid",
         queryset=Organization.objects.all(),
@@ -111,4 +102,3 @@ class AiUseCaseSerializer(OrganizationScopedSerializerMixin, serializers.ModelSe
                 {"organization_unit": "Organization unit must belong to the same organization."}
             )
         return attrs
-

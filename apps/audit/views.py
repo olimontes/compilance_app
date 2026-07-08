@@ -1,23 +1,12 @@
 from rest_framework import viewsets
 
-from apps.organizations.models import Membership, Organization
+from apps.common.tenancy import OrganizationScopedQuerySetMixin
 
 from .models import AuditEvent, DataChangeLog
 from .serializers import AuditEventSerializer, DataChangeLogSerializer
 
 
-class OrganizationScopedAuditMixin:
-    def user_organization_ids(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Organization.objects.values_list("id", flat=True)
-        return Membership.objects.filter(
-            user=user,
-            status=Membership.Status.ACTIVE,
-        ).values_list("organization_id", flat=True)
-
-
-class AuditEventViewSet(OrganizationScopedAuditMixin, viewsets.ReadOnlyModelViewSet):
+class AuditEventViewSet(OrganizationScopedQuerySetMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = AuditEventSerializer
     lookup_field = "uuid"
     queryset = AuditEvent.objects.none()
@@ -36,7 +25,7 @@ class AuditEventViewSet(OrganizationScopedAuditMixin, viewsets.ReadOnlyModelView
         return queryset
 
 
-class DataChangeLogViewSet(OrganizationScopedAuditMixin, viewsets.ReadOnlyModelViewSet):
+class DataChangeLogViewSet(OrganizationScopedQuerySetMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = DataChangeLogSerializer
     lookup_field = "uuid"
     queryset = DataChangeLog.objects.none()

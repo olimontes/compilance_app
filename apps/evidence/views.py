@@ -1,21 +1,10 @@
 from rest_framework import viewsets
 
 from apps.audit.services import log_create_event
-from apps.organizations.models import Membership, Organization
+from apps.common.tenancy import OrganizationScopedQuerySetMixin
 
 from .models import Evidence, EvidenceLink
 from .serializers import EvidenceLinkSerializer, EvidenceSerializer
-
-
-class OrganizationScopedQuerySetMixin:
-    def user_organization_ids(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Organization.objects.values_list("id", flat=True)
-        return Membership.objects.filter(
-            user=user,
-            status=Membership.Status.ACTIVE,
-        ).values_list("organization_id", flat=True)
 
 
 class EvidenceViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):

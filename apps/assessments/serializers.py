@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from apps.organizations.models import Membership, Organization
+from apps.common.tenancy import OrganizationMembershipValidatorMixin, user_has_active_membership
+from apps.organizations.models import Organization
 
 from .models import (
     Assessment,
@@ -74,16 +75,6 @@ class AssessmentQuestionSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class OrganizationMembershipValidatorMixin:
-    def validate_organization(self, organization):
-        user = self.context["request"].user
-        if user.is_superuser:
-            return organization
-        if organization.memberships.filter(user=user, status=Membership.Status.ACTIVE).exists():
-            return organization
-        raise serializers.ValidationError("You are not a member of this organization.")
-
-
 class AssessmentSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="uuid",
@@ -140,9 +131,7 @@ class AssessmentAnswerSerializer(serializers.ModelSerializer):
 
     def validate_assessment(self, assessment):
         user = self.context["request"].user
-        if user.is_superuser:
-            return assessment
-        if assessment.organization.memberships.filter(user=user, status=Membership.Status.ACTIVE).exists():
+        if user_has_active_membership(user, assessment.organization):
             return assessment
         raise serializers.ValidationError("You are not a member of this assessment organization.")
 
@@ -152,4 +141,3 @@ class AssessmentAnswerSerializer(serializers.ModelSerializer):
         if assessment and question and question.framework_id != assessment.framework_id:
             raise serializers.ValidationError({"question": "Question must belong to the assessment framework."})
         return attrs
-

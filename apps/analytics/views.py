@@ -4,9 +4,10 @@ from rest_framework import decorators, response, serializers, viewsets
 
 from apps.ai_assets.models import AiUseCase, RiskLevel
 from apps.assessments.models import Assessment
+from apps.common.tenancy import OrganizationScopedQuerySetMixin, active_organization_ids_for_user
 from apps.compliance.models import Control, Risk
 from apps.evidence.models import Evidence
-from apps.organizations.models import Membership, Organization
+from apps.organizations.models import Organization
 
 from .models import DataQualityCheck, IngestionRun, MetricDefinition, MetricSnapshot
 from .serializers import (
@@ -15,17 +16,6 @@ from .serializers import (
     MetricDefinitionSerializer,
     MetricSnapshotSerializer,
 )
-
-
-class OrganizationScopedQuerySetMixin:
-    def user_organization_ids(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Organization.objects.values_list("id", flat=True)
-        return Membership.objects.filter(
-            user=user,
-            status=Membership.Status.ACTIVE,
-        ).values_list("organization_id", flat=True)
 
 
 class MetricDefinitionViewSet(viewsets.ModelViewSet):
@@ -106,13 +96,7 @@ def _choice_counts(queryset, field_name, choices):
 )
 @decorators.api_view(["GET"])
 def metrics_overview(request):
-    if request.user.is_superuser:
-        organization_ids = Organization.objects.values_list("id", flat=True)
-    else:
-        organization_ids = Membership.objects.filter(
-            user=request.user,
-            status=Membership.Status.ACTIVE,
-        ).values_list("organization_id", flat=True)
+    organization_ids = active_organization_ids_for_user(request.user)
 
     risks = Risk.objects.filter(organization_id__in=organization_ids)
     assessments = Assessment.objects.filter(organization_id__in=organization_ids)

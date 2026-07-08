@@ -1,20 +1,11 @@
 from rest_framework import serializers
 
 from apps.assessments.models import AssessmentAnswer
+from apps.common.tenancy import OrganizationMembershipValidatorMixin, user_has_active_membership
 from apps.compliance.models import Control, Risk
-from apps.organizations.models import Membership, Organization
+from apps.organizations.models import Organization
 
 from .models import Evidence, EvidenceLink
-
-
-class OrganizationMembershipValidatorMixin:
-    def validate_organization(self, organization):
-        user = self.context["request"].user
-        if user.is_superuser:
-            return organization
-        if organization.memberships.filter(user=user, status=Membership.Status.ACTIVE).exists():
-            return organization
-        raise serializers.ValidationError("You are not a member of this organization.")
 
 
 class EvidenceSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSerializer):
@@ -72,9 +63,7 @@ class EvidenceLinkSerializer(serializers.ModelSerializer):
 
     def validate_evidence(self, evidence):
         user = self.context["request"].user
-        if user.is_superuser:
-            return evidence
-        if evidence.organization.memberships.filter(user=user, status=Membership.Status.ACTIVE).exists():
+        if user_has_active_membership(user, evidence.organization):
             return evidence
         raise serializers.ValidationError("You are not a member of this evidence organization.")
 
@@ -98,4 +87,3 @@ class EvidenceLinkSerializer(serializers.ModelSerializer):
         if isinstance(target, AssessmentAnswer):
             return target.assessment.organization_id == evidence.organization_id
         return target.organization_id == evidence.organization_id
-

@@ -1,23 +1,13 @@
 from rest_framework import viewsets
 
 from apps.audit.services import log_create_event
+from apps.common.tenancy import OrganizationScopedQuerySetMixin
 
 from .models import Membership, Organization, OrganizationUnit
 from .serializers import MembershipSerializer, OrganizationSerializer, OrganizationUnitSerializer
 
 
-class OrganizationAccessMixin:
-    def user_organization_ids(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Organization.objects.values_list("id", flat=True)
-        return Membership.objects.filter(
-            user=user,
-            status=Membership.Status.ACTIVE,
-        ).values_list("organization_id", flat=True)
-
-
-class OrganizationViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
+class OrganizationViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = OrganizationSerializer
     lookup_field = "uuid"
     queryset = Organization.objects.none()
@@ -46,7 +36,7 @@ class OrganizationViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
         )
 
 
-class OrganizationUnitViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
+class OrganizationUnitViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = OrganizationUnitSerializer
     lookup_field = "uuid"
     queryset = OrganizationUnit.objects.none()
@@ -64,7 +54,7 @@ class OrganizationUnitViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
         )
 
 
-class MembershipViewSet(OrganizationAccessMixin, viewsets.ReadOnlyModelViewSet):
+class MembershipViewSet(OrganizationScopedQuerySetMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = MembershipSerializer
     lookup_field = "uuid"
     queryset = Membership.objects.none()

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.common.tenancy import user_has_active_membership
+
 from .models import Membership, Organization, OrganizationUnit
 
 
@@ -37,9 +39,7 @@ class OrganizationUnitSerializer(serializers.ModelSerializer):
 
     def validate_organization(self, organization):
         user = self.context["request"].user
-        if user.is_superuser:
-            return organization
-        if organization.memberships.filter(user=user, status=Membership.Status.ACTIVE).exists():
+        if user_has_active_membership(user, organization):
             return organization
         raise serializers.ValidationError("You are not a member of this organization.")
 
@@ -59,4 +59,3 @@ class MembershipSerializer(serializers.ModelSerializer):
         model = Membership
         fields = ("uuid", "organization", "user", "role", "status", "created_at", "updated_at")
         read_only_fields = fields
-

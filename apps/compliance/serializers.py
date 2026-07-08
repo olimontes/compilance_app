@@ -1,19 +1,10 @@
 from rest_framework import serializers
 
 from apps.ai_assets.models import AiUseCase
-from apps.organizations.models import Membership, Organization
+from apps.common.tenancy import OrganizationMembershipValidatorMixin, user_has_active_membership
+from apps.organizations.models import Organization
 
 from .models import Control, Risk, RiskControl
-
-
-class OrganizationMembershipValidatorMixin:
-    def validate_organization(self, organization):
-        user = self.context["request"].user
-        if user.is_superuser:
-            return organization
-        if organization.memberships.filter(user=user, status=Membership.Status.ACTIVE).exists():
-            return organization
-        raise serializers.ValidationError("You are not a member of this organization.")
 
 
 class ControlSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSerializer):
@@ -86,9 +77,7 @@ class RiskControlSerializer(serializers.ModelSerializer):
 
     def validate_risk(self, risk):
         user = self.context["request"].user
-        if user.is_superuser:
-            return risk
-        if risk.organization.memberships.filter(user=user, status=Membership.Status.ACTIVE).exists():
+        if user_has_active_membership(user, risk.organization):
             return risk
         raise serializers.ValidationError("You are not a member of this risk organization.")
 
@@ -98,4 +87,3 @@ class RiskControlSerializer(serializers.ModelSerializer):
         if risk and control and risk.organization_id != control.organization_id:
             raise serializers.ValidationError({"control": "Control must belong to the same organization as the risk."})
         return attrs
-
