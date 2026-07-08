@@ -56,6 +56,7 @@ class AssessmentQuestionViewSet(viewsets.ModelViewSet):
 class AssessmentViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = AssessmentSerializer
     lookup_field = "uuid"
+    queryset = Assessment.objects.none()
 
     def get_queryset(self):
         queryset = Assessment.objects.filter(organization_id__in=self.user_organization_ids())
@@ -71,6 +72,7 @@ class AssessmentViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
 class AssessmentAnswerViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = AssessmentAnswerSerializer
     lookup_field = "uuid"
+    queryset = AssessmentAnswer.objects.none()
 
     def get_queryset(self):
         return AssessmentAnswer.objects.filter(
@@ -79,4 +81,3 @@ class AssessmentAnswerViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelVie
 
     def perform_create(self, serializer):
         serializer.save(answered_by=self.request.user)
-

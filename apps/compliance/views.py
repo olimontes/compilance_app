@@ -20,6 +20,7 @@ class OrganizationScopedQuerySetMixin:
 class ControlViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = ControlSerializer
     lookup_field = "uuid"
+    queryset = Control.objects.none()
 
     def get_queryset(self):
         queryset = Control.objects.filter(organization_id__in=self.user_organization_ids())
@@ -35,6 +36,7 @@ class ControlViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
 class RiskViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = RiskSerializer
     lookup_field = "uuid"
+    queryset = Risk.objects.none()
 
     def get_queryset(self):
         queryset = Risk.objects.filter(organization_id__in=self.user_organization_ids())
@@ -49,7 +51,7 @@ class RiskViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
 
 class RiskControlViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = RiskControlSerializer
+    queryset = RiskControl.objects.none()
 
     def get_queryset(self):
         return RiskControl.objects.filter(risk__organization_id__in=self.user_organization_ids())
-

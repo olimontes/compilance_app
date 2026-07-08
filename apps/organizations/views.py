@@ -18,6 +18,7 @@ class OrganizationAccessMixin:
 class OrganizationViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
     serializer_class = OrganizationSerializer
     lookup_field = "uuid"
+    queryset = Organization.objects.none()
 
     def get_queryset(self):
         if self.request.user.is_superuser:
@@ -37,6 +38,7 @@ class OrganizationViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
 class OrganizationUnitViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
     serializer_class = OrganizationUnitSerializer
     lookup_field = "uuid"
+    queryset = OrganizationUnit.objects.none()
 
     def get_queryset(self):
         return OrganizationUnit.objects.filter(organization_id__in=self.user_organization_ids())
@@ -45,7 +47,7 @@ class OrganizationUnitViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
 class MembershipViewSet(OrganizationAccessMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = MembershipSerializer
     lookup_field = "uuid"
+    queryset = Membership.objects.none()
 
     def get_queryset(self):
         return Membership.objects.filter(organization_id__in=self.user_organization_ids())
-

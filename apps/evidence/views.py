@@ -20,6 +20,7 @@ class OrganizationScopedQuerySetMixin:
 class EvidenceViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = EvidenceSerializer
     lookup_field = "uuid"
+    queryset = Evidence.objects.none()
 
     def get_queryset(self):
         queryset = Evidence.objects.filter(organization_id__in=self.user_organization_ids())
@@ -37,7 +38,7 @@ class EvidenceViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
 
 class EvidenceLinkViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = EvidenceLinkSerializer
+    queryset = EvidenceLink.objects.none()
 
     def get_queryset(self):
         return EvidenceLink.objects.filter(evidence__organization_id__in=self.user_organization_ids())
-

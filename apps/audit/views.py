@@ -20,6 +20,7 @@ class OrganizationScopedAuditMixin:
 class AuditEventViewSet(OrganizationScopedAuditMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = AuditEventSerializer
     lookup_field = "uuid"
+    queryset = AuditEvent.objects.none()
 
     def get_queryset(self):
         queryset = AuditEvent.objects.select_related("organization", "actor_user")
@@ -38,6 +39,7 @@ class AuditEventViewSet(OrganizationScopedAuditMixin, viewsets.ReadOnlyModelView
 class DataChangeLogViewSet(OrganizationScopedAuditMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = DataChangeLogSerializer
     lookup_field = "uuid"
+    queryset = DataChangeLog.objects.none()
 
     def get_queryset(self):
         queryset = DataChangeLog.objects.select_related("audit_event", "audit_event__organization")
@@ -51,4 +53,3 @@ class DataChangeLogViewSet(OrganizationScopedAuditMixin, viewsets.ReadOnlyModelV
         if entity_type:
             queryset = queryset.filter(entity_type=entity_type)
         return queryset
-

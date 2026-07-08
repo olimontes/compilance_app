@@ -37,6 +37,7 @@ class MetricDefinitionViewSet(viewsets.ModelViewSet):
 class MetricSnapshotViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = MetricSnapshotSerializer
     lookup_field = "uuid"
+    queryset = MetricSnapshot.objects.none()
 
     def get_queryset(self):
         queryset = MetricSnapshot.objects.filter(organization_id__in=self.user_organization_ids())
@@ -74,4 +75,3 @@ class IngestionRunViewSet(viewsets.ModelViewSet):
         if source_name:
             queryset = queryset.filter(source_name=source_name)
         return queryset
-

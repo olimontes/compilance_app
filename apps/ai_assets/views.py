@@ -20,6 +20,7 @@ class OrganizationScopedQuerySetMixin:
 class AiVendorViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = AiVendorSerializer
     lookup_field = "uuid"
+    queryset = AiVendor.objects.none()
 
     def get_queryset(self):
         queryset = AiVendor.objects.filter(organization_id__in=self.user_organization_ids())
@@ -32,6 +33,7 @@ class AiVendorViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
 class AiToolViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = AiToolSerializer
     lookup_field = "uuid"
+    queryset = AiTool.objects.none()
 
     def get_queryset(self):
         queryset = AiTool.objects.filter(organization_id__in=self.user_organization_ids())
@@ -44,6 +46,7 @@ class AiToolViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
 class AiUseCaseViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = AiUseCaseSerializer
     lookup_field = "uuid"
+    queryset = AiUseCase.objects.none()
 
     def get_queryset(self):
         queryset = AiUseCase.objects.filter(organization_id__in=self.user_organization_ids())
@@ -54,4 +57,3 @@ class AiUseCaseViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
         if lifecycle_stage:
             queryset = queryset.filter(lifecycle_stage=lifecycle_stage)
         return queryset
-
