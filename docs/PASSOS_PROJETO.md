@@ -87,11 +87,11 @@ O diferencial nao deve ser apenas cadastro ou questionario. O valor principal e:
 
 ### O que ainda nao existe como produto usavel
 
-- [ ] Frontend TypeScript.
+- [x] Frontend TypeScript inicial.
 - [ ] Fluxo guiado de onboarding.
 - [ ] Login/registro pensado para usuario final.
 - [ ] Convites de usuarios para organizacoes.
-- [ ] Interface para o questionario estruturado.
+- [x] Interface inicial para o questionario estruturado.
 - [x] Enriquecimento narrativo do plano de mitigacao em API.
 - [x] Relatorio executivo em JSON.
 - [ ] Dashboard de maturidade orientado ao usuario.
@@ -102,52 +102,48 @@ O diferencial nao deve ser apenas cadastro ou questionario. O valor principal e:
 
 ## Passo concluido mais recente
 
-[x] Enriquecer plano de mitigacao com indicadores, evidencias esperadas e
-relatorio executivo.
+[x] Criar primeira interface web TypeScript para o usuario interagir com o
+fluxo de assessment e relatorio.
 
 Entregue:
 
-- campos narrativos padronizados para plano de mitigacao: objetivo,
-  justificativa, beneficios esperados, complexidade, prazo sugerido, areas
-  impactadas, indicadores de sucesso e evidencias esperadas;
-- consequencias juridicas, financeiras, operacionais e reputacionais por tipo
-  de risco;
-- descricoes persistidas em `ActionPlan` e `ActionItem` com indicadores e
-  evidencias;
-- endpoint `GET /api/assessments/{uuid}/executive-report/`;
-- relatorio executivo em JSON com resumo, riscos, consequencias, plano e
-  proximos passos;
-- testes de conteudo minimo do relatorio e isolamento multi-tenant;
-- documentacao do formato em `docs/CAMADA_DADOS.md`.
+- estrutura `frontend/` com Vite, React e TypeScript;
+- cliente HTTP para consumir a API Django;
+- tela de credenciais de desenvolvimento usando Basic Auth;
+- criacao e listagem de assessments;
+- visualizacao do questionario por dimensao;
+- salvamento de respostas;
+- submissao do assessment;
+- geracao do plano de mitigacao;
+- visualizacao de resumo e relatorio executivo;
+- documentacao de execucao local.
 
 ## Proximo passo recomendado
 
-[>] Criar primeira interface web TypeScript para o usuario interagir com o
-fluxo de assessment e relatorio.
+[>] Criar login/registro e onboarding inicial de organizacao para usuario final.
 
 Motivo:
 
-- o backend ja permite criar assessment, responder questionario, submeter,
-  gerar plano de mitigacao e consultar relatorio executivo;
-- ainda nao existe uma tela propria para usuario final;
-- uma interface simples vai validar o fluxo real do produto antes de ampliar
-  dashboards e documentos.
+- a primeira SPA ja valida o fluxo de assessment e relatorio;
+- a autenticacao atual e apenas uma ponte de desenvolvimento via Basic Auth;
+- o produto precisa permitir entrada de usuario final sem depender do Django
+  Admin para criar usuario, organizacao e membership.
 
 Escopo recomendado para o proximo PR:
 
-- [ ] Escolher e criar a estrutura frontend (`frontend/`) em TypeScript.
-- [ ] Configurar cliente HTTP para consumir a API Django.
-- [ ] Criar tela inicial autenticada ou tela dev de selecao de assessment.
-- [ ] Criar visualizacao do questionario por dimensao.
-- [ ] Criar tela de resumo/relatorio executivo.
-- [ ] Documentar como rodar frontend e backend localmente.
+- [ ] Definir estrategia de autenticacao do MVP: session auth, token ou JWT.
+- [ ] Criar endpoints de registro/login/logout ou integrar pacote de auth.
+- [ ] Criar fluxo inicial para criar organizacao e membership owner.
+- [ ] Trocar a tela de Basic Auth por login real no frontend.
+- [ ] Proteger rotas do frontend por usuario autenticado.
+- [ ] Documentar o fluxo de autenticacao local.
 
 Entrega minima aceitavel:
 
-- abrir uma URL local do frontend;
-- visualizar assessments disponiveis para o usuario autenticado ou contexto dev;
-- abrir questionario/resumo de um assessment;
-- visualizar o relatorio executivo gerado pela API.
+- usuario cria conta ou faz login pela tela;
+- usuario cria ou acessa uma organizacao;
+- frontend passa a consumir a API sem digitar Basic Auth manualmente;
+- logout funcional.
 
 ## Roadmap de produto
 
@@ -182,7 +178,7 @@ Status: base pronta; convites e permissoes finas pendentes.
 - [x] Calcular score automaticamente.
 - [x] Gerar recomendacoes iniciais.
 
-Status: backend do fluxo guiado pronto; frontend pendente.
+Status: backend pronto e primeira tela operacional criada; onboarding pendente.
 
 ### Fase 3 - Riscos e plano de mitigacao
 
@@ -193,7 +189,7 @@ Status: backend do fluxo guiado pronto; frontend pendente.
 - [x] Gerar plano de mitigacao inicial por risco.
 - [x] Criar indicadores de sucesso e evidencias esperadas por acao.
 
-Status: motor inicial e plano enriquecido prontos; frontend pendente.
+Status: motor inicial e plano enriquecido prontos; UX de acompanhamento pendente.
 
 ### Fase 4 - Relatorio e dashboard
 
@@ -220,16 +216,16 @@ Status: MVP tecnico pronto; governanca operacional pendente.
 
 ### Fase 6 - Frontend
 
-- [>] Escolher Vite/React ou Next.js.
-- [ ] Criar estrutura `frontend/`.
+- [x] Escolher Vite/React ou Next.js.
+- [x] Criar estrutura `frontend/`.
 - [ ] Criar login.
 - [ ] Criar onboarding de organizacao.
 - [ ] Criar inventario de IA.
-- [ ] Criar avaliacao guiada.
+- [x] Criar avaliacao guiada inicial.
 - [ ] Criar dashboard.
-- [ ] Criar relatorio executivo.
+- [x] Criar relatorio executivo inicial.
 
-Status: nao iniciado.
+Status: primeira SPA operacional pronta; auth, onboarding, inventario e dashboard pendentes.
 
 ### Fase 7 - IA e documentos corporativos
 

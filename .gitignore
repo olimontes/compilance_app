@@ -14,3 +14,9 @@ media/
 .coverage
 htmlcov/
 *.log
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.tsbuildinfo
+frontend/vite.config.d.ts
+frontend/vite.config.js

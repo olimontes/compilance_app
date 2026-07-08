@@ -8,7 +8,7 @@ versao da camada de dados da plataforma.
 ## Stack
 
 - Backend em Django + Django REST Framework
-- Frontend planejado em TypeScript
+- Frontend em TypeScript, React e Vite
 - PostgreSQL em producao
 - Redis + Celery para jobs assincronos
 - Gunicorn em producao
@@ -31,6 +31,7 @@ versao da camada de dados da plataforma.
 - Celery configurado para quando os jobs forem adicionados
 - Docker Compose com PostgreSQL e Redis
 - Blueprint gratuito do Render
+- Primeira SPA em `frontend/` para assessment, questionario, resumo e relatorio executivo
 - Guia de Git Flow em `docs/GITFLOW.md`
 - Plano de execucao de dados em `docs/PLANO_DADOS.md`
 - Status da camada de dados em `docs/STATUS_CAMADA_DADOS.md`
@@ -39,8 +40,9 @@ versao da camada de dados da plataforma.
 
 ## O que ainda nao existe
 
-- Frontend TypeScript
-- Motor de regras
+- Login/registro pensado para usuario final
+- Onboarding guiado de organizacao
+- Dashboard de maturidade completo
 - Integracao com IA
 - Jobs Celery em producao gratuita
 - Upload real de arquivos de evidencia em storage externo
@@ -90,6 +92,15 @@ Depois acesse:
 - API: `http://localhost:8000/api/health/`
 - Admin: `http://localhost:8000/admin/`
 - Docs: `http://localhost:8000/api/docs/`
+- Frontend: `http://127.0.0.1:5173`
+
+Para rodar a primeira SPA local:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ## Deploy
 

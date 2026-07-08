@@ -3,9 +3,8 @@
 Backend Django para uma plataforma SaaS de governanca, compliance e maturidade
 no uso corporativo de IA.
 
-O projeto ainda esta em fase inicial: a base de deploy, configuracao e health
-check ja existe, mas os apps de dominio, modelos de negocio e frontend ainda
-serao implementados.
+O projeto esta em fase inicial de produto: a base backend, camada de dados,
+motor inicial de assessment/mitigacao e primeira interface web ja existem.
 
 ## Stack
 
@@ -15,7 +14,7 @@ serao implementados.
 - Jobs e fila: Celery com Redis/Key Value Redis-compatible.
 - Servidor de aplicacao: Gunicorn.
 - Static files do Django: WhiteNoise.
-- Frontend planejado: TypeScript, preferencialmente React com Vite ou Next.js.
+- Frontend: TypeScript, React e Vite.
 - Observabilidade: Sentry opcional.
 - Deploy gratuito recomendado: Render para backend, Postgres e Redis/Key Value.
 - Deploy de producao recomendado: Render pago com worker Celery e Postgres persistente.
@@ -33,14 +32,13 @@ serao implementados.
 - Guia de Git Flow em `docs/GITFLOW.md`.
 - Plano de execucao da camada de dados em `docs/PLANO_DADOS.md`.
 - Controle de passos do projeto em `docs/PASSOS_PROJETO.md`.
+- Primeira SPA em `frontend/` para assessment, questionario, resumo e relatorio.
 
 ## O que ainda nao existe
 
-- Frontend TypeScript.
-- Apps de dominio.
-- Modelos e migrations de negocio.
-- Endpoints da plataforma.
-- Motor de regras.
+- Login/registro pensado para usuario final.
+- Onboarding guiado de organizacao.
+- Dashboard de maturidade completo.
 - Integracoes com IA.
 
 ## Rodar local com PostgreSQL
@@ -79,6 +77,24 @@ Depois acesse:
 - API: `http://localhost:8000/api/health/`
 - Admin: `http://localhost:8000/admin/`
 - Docs: `http://localhost:8000/api/docs/`
+
+## Rodar frontend local
+
+Com o backend Django rodando em `http://127.0.0.1:8000`:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Depois acesse:
+
+- Frontend: `http://127.0.0.1:5173`
+
+O Vite faz proxy de `/api` para o backend local. A autenticacao atual da tela
+usa Basic Auth de desenvolvimento com um usuario Django que tenha `Membership`
+ativo em uma organizacao.
 
 ## Rodar local com SQLite
 
@@ -193,13 +209,13 @@ SENTRY_DSN=<dsn-do-projeto-sentry>
 
 ## Deploy do frontend TypeScript
 
-Quando o frontend for criado, a estrutura recomendada e:
+Estrutura atual:
 
 ```text
 frontend/
   package.json
+  vite.config.ts
   src/
-  vite.config.ts ou next.config.ts
 ```
 
 Para frontend Vite/React em Render Static Site:
@@ -214,7 +230,7 @@ Production Branch: main
 Variavel esperada no frontend:
 
 ```text
-VITE_API_BASE_URL=https://<api-domain>
+VITE_API_BASE_URL=https://<api-domain>/api
 ```
 
 Para frontend Next.js em Vercel:
