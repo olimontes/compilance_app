@@ -104,3 +104,17 @@ class AssessmentApiTests(APITestCase):
         self.assertIn(visible.title, titles)
         self.assertNotIn("Hidden assessment", titles)
 
+    def test_create_assessment_rejects_non_member_organization(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+
+        response = self.client.post(
+            "/api/assessments/",
+            {
+                "organization": str(hidden_org.uuid),
+                "framework": str(self.framework.uuid),
+                "title": "Cross tenant assessment",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

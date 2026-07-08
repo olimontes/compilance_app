@@ -110,3 +110,27 @@ class ComplianceApiTests(APITestCase):
         self.assertIn(visible_risk.title, titles)
         self.assertNotIn("Hidden risk", titles)
 
+    def test_create_risk_rejects_use_case_from_another_organization(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        hidden_tool = AiTool.objects.create(organization=hidden_org, name="Hidden Tool")
+        hidden_use_case = AiUseCase.objects.create(
+            organization=hidden_org,
+            ai_tool=hidden_tool,
+            name="Hidden use case",
+            purpose="Hidden purpose.",
+        )
+
+        response = self.client.post(
+            "/api/risks/",
+            {
+                "organization": str(self.organization.uuid),
+                "ai_use_case": str(hidden_use_case.uuid),
+                "title": "Cross tenant risk",
+                "likelihood": 3,
+                "impact": 4,
+                "severity": RiskLevel.HIGH,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -89,3 +89,18 @@ class AiAssetApiTests(APITestCase):
         self.assertIn(visible_tool.name, names)
         self.assertNotIn("Hidden Tool", names)
 
+    def test_create_ai_tool_rejects_vendor_from_another_organization(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        hidden_vendor = AiVendor.objects.create(organization=hidden_org, name="Hidden Vendor")
+
+        response = self.client.post(
+            "/api/ai-tools/",
+            {
+                "organization": str(self.organization.uuid),
+                "vendor": str(hidden_vendor.uuid),
+                "name": "Cross tenant tool",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

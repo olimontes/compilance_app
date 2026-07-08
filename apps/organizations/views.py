@@ -23,7 +23,10 @@ class OrganizationViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_superuser:
             return Organization.objects.all()
-        return Organization.objects.filter(memberships__user=self.request.user).distinct()
+        return Organization.objects.filter(
+            memberships__user=self.request.user,
+            memberships__status=Membership.Status.ACTIVE,
+        ).distinct()
 
     def perform_create(self, serializer):
         organization = serializer.save()

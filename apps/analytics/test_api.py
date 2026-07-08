@@ -100,3 +100,21 @@ class AnalyticsApiTests(APITestCase):
         self.assertEqual(quality_response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ingestion_response.status_code, status.HTTP_201_CREATED)
 
+    def test_create_metric_snapshot_rejects_non_member_organization(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        now = timezone.now()
+
+        response = self.client.post(
+            "/api/metric-snapshots/",
+            {
+                "organization": str(hidden_org.uuid),
+                "metric_definition": str(self.metric.uuid),
+                "metric_value": "3.0000",
+                "period_start": now.isoformat(),
+                "period_end": now.isoformat(),
+                "computed_at": now.isoformat(),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

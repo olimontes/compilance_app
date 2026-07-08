@@ -104,3 +104,28 @@ class EvidenceApiTests(APITestCase):
         self.assertIn(visible_evidence.title, titles)
         self.assertNotIn("Hidden evidence", titles)
 
+    def test_evidence_link_rejects_target_from_another_organization(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        hidden_risk = Risk.objects.create(
+            organization=hidden_org,
+            title="Hidden risk",
+            likelihood=3,
+            impact=4,
+            severity=RiskLevel.HIGH,
+        )
+        evidence = Evidence.objects.create(
+            organization=self.organization,
+            uploaded_by=self.user,
+            title="Access policy",
+        )
+
+        response = self.client.post(
+            "/api/evidence-links/",
+            {
+                "evidence": str(evidence.uuid),
+                "risk": str(hidden_risk.uuid),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -38,7 +38,13 @@ class OrganizationApiTests(APITestCase):
     def test_list_organizations_only_returns_user_memberships(self):
         visible = Organization.objects.create(name="Visible", slug="visible")
         hidden = Organization.objects.create(name="Hidden", slug="hidden")
+        inactive = Organization.objects.create(name="Inactive", slug="inactive")
         Membership.objects.create(user=self.user, organization=visible)
+        Membership.objects.create(
+            user=self.user,
+            organization=inactive,
+            status=Membership.Status.INACTIVE,
+        )
 
         response = self.client.get("/api/organizations/")
 
@@ -46,6 +52,7 @@ class OrganizationApiTests(APITestCase):
         names = {item["name"] for item in response.json()["results"]}
         self.assertIn(visible.name, names)
         self.assertNotIn(hidden.name, names)
+        self.assertNotIn(inactive.name, names)
 
     def test_create_organization_unit_for_member_organization(self):
         organization = Organization.objects.create(name="Acme Corp", slug="acme-corp")
@@ -63,4 +70,3 @@ class OrganizationApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(OrganizationUnit.objects.filter(slug="legal").exists())
-
