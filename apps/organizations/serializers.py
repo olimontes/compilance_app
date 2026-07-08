@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.common.tenancy import user_has_active_membership
+from apps.common.tenancy import serializer_field_value, user_has_active_membership
 
 from .models import Membership, Organization, OrganizationUnit
 
@@ -44,8 +44,8 @@ class OrganizationUnitSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("You are not a member of this organization.")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
-        parent = attrs.get("parent")
+        organization = serializer_field_value(self, attrs, "organization")
+        parent = serializer_field_value(self, attrs, "parent")
         if parent and organization and parent.organization_id != organization.id:
             raise serializers.ValidationError({"parent": "Parent unit must belong to the same organization."})
         return attrs

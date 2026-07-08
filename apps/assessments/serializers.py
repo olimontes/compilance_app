@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from apps.common.tenancy import OrganizationMembershipValidatorMixin, user_has_active_membership
+from apps.common.tenancy import (
+    OrganizationMembershipValidatorMixin,
+    serializer_field_value,
+    user_has_active_membership,
+)
 from apps.organizations.models import Organization
 
 from .models import (
@@ -70,8 +74,8 @@ class AssessmentQuestionSerializer(serializers.ModelSerializer):
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        framework = attrs.get("framework") or getattr(self.instance, "framework", None)
-        dimension = attrs.get("dimension")
+        framework = serializer_field_value(self, attrs, "framework")
+        dimension = serializer_field_value(self, attrs, "dimension")
         if dimension and framework and dimension.framework_id != framework.id:
             raise serializers.ValidationError({"dimension": "Dimension must belong to the same framework."})
         return attrs
@@ -138,8 +142,8 @@ class AssessmentAnswerSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("You are not a member of this assessment organization.")
 
     def validate(self, attrs):
-        assessment = attrs.get("assessment") or getattr(self.instance, "assessment", None)
-        question = attrs.get("question")
+        assessment = serializer_field_value(self, attrs, "assessment")
+        question = serializer_field_value(self, attrs, "question")
         if assessment and question and question.framework_id != assessment.framework_id:
             raise serializers.ValidationError({"question": "Question must belong to the assessment framework."})
         return attrs
@@ -179,8 +183,8 @@ class MaturityScoreSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("You are not a member of this assessment organization.")
 
     def validate(self, attrs):
-        assessment = attrs.get("assessment") or getattr(self.instance, "assessment", None)
-        dimension = attrs.get("dimension")
+        assessment = serializer_field_value(self, attrs, "assessment")
+        dimension = serializer_field_value(self, attrs, "dimension")
         if assessment and dimension and dimension.framework_id != assessment.framework_id:
             raise serializers.ValidationError({"dimension": "Dimension must belong to the assessment framework."})
         return attrs
@@ -221,8 +225,8 @@ class RecommendationSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("You are not a member of this assessment organization.")
 
     def validate(self, attrs):
-        assessment = attrs.get("assessment") or getattr(self.instance, "assessment", None)
-        dimension = attrs.get("dimension")
+        assessment = serializer_field_value(self, attrs, "assessment")
+        dimension = serializer_field_value(self, attrs, "dimension")
         if assessment and dimension and dimension.framework_id != assessment.framework_id:
             raise serializers.ValidationError({"dimension": "Dimension must belong to the assessment framework."})
         return attrs

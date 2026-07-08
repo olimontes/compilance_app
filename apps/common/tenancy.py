@@ -32,3 +32,11 @@ class OrganizationMembershipValidatorMixin:
         if user_has_active_membership(user, organization):
             return organization
         raise serializers.ValidationError("You are not a member of this organization.")
+
+
+def serializer_field_value(serializer, attrs, field_name):
+    if field_name in attrs:
+        return attrs[field_name]
+    if serializer.instance is None:
+        return None
+    return getattr(serializer.instance, field_name, None)

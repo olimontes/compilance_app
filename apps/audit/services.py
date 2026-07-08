@@ -1,9 +1,38 @@
 from decimal import Decimal
 
+from django.db import models
+
 from .models import AuditEvent, DataChangeLog
 
 
+SENSITIVE_SNAPSHOT_FIELD_NAMES = {
+    "after",
+    "before",
+    "checksum",
+    "description",
+    "email",
+    "error_message",
+    "external_url",
+    "file_path",
+    "metadata",
+    "notes",
+    "password",
+    "phone",
+    "rationale",
+    "tax_id",
+    "value",
+}
+
+SENSITIVE_SNAPSHOT_FIELD_TYPES = (
+    models.FileField,
+    models.JSONField,
+    models.TextField,
+    models.URLField,
+)
+
+
 def log_create_event(*, actor_user, organization, instance, event_type, metadata=None):
+    snapshot = _safe_snapshot(instance)
     event = AuditEvent.objects.create(
         organization=organization,
         actor_user=actor_user if getattr(actor_user, "is_authenticated", False) else None,
@@ -18,8 +47,8 @@ def log_create_event(*, actor_user, organization, instance, event_type, metadata
         entity_uuid=getattr(instance, "uuid", None),
         action=DataChangeLog.Action.CREATE,
         before=None,
-        after=_safe_snapshot(instance),
-        changed_fields=list(_safe_snapshot(instance).keys()),
+        after=snapshot,
+        changed_fields=list(snapshot.keys()),
     )
     return event
 
@@ -27,11 +56,15 @@ def log_create_event(*, actor_user, organization, instance, event_type, metadata
 def _safe_snapshot(instance):
     snapshot = {}
     for field in instance._meta.fields:
-        if field.name in {"password", "metadata", "before", "after"}:
+        if _should_skip_snapshot_field(field):
             continue
         value = getattr(instance, field.attname)
         snapshot[field.name] = _serialize_value(value)
     return snapshot
+
+
+def _should_skip_snapshot_field(field):
+    return field.name in SENSITIVE_SNAPSHOT_FIELD_NAMES or isinstance(field, SENSITIVE_SNAPSHOT_FIELD_TYPES)
 
 
 def _serialize_value(value):

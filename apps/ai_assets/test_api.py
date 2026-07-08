@@ -171,6 +171,29 @@ class AiAssetApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_update_ai_tool_rejects_existing_vendor_from_another_organization(self):
+        other_org = Organization.objects.create(name="Other Corp", slug="other-corp")
+        Membership.objects.create(user=self.user, organization=other_org)
+        vendor = AiVendor.objects.create(organization=self.organization, name="OpenAI")
+        tool = AiTool.objects.create(
+            organization=self.organization,
+            vendor=vendor,
+            name="ChatGPT Enterprise",
+        )
+
+        response = self.client.patch(
+            f"/api/ai-tools/{tool.uuid}/",
+            {
+                "organization": str(other_org.uuid),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        tool.refresh_from_db()
+        self.assertEqual(tool.organization, self.organization)
+        self.assertEqual(tool.vendor, vendor)
+
     def test_create_ai_model_rejects_tool_from_another_organization(self):
         hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
         hidden_tool = AiTool.objects.create(organization=hidden_org, name="Hidden Tool")

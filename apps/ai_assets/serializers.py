@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.common.tenancy import OrganizationMembershipValidatorMixin
+from apps.common.tenancy import OrganizationMembershipValidatorMixin, serializer_field_value
 from apps.organizations.models import Membership, Organization, OrganizationUnit
 
 from .models import AiAssetOwner, AiModel, AiTool, AiUseCase, AiVendor, DataSource
@@ -48,8 +48,8 @@ class AiToolSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSe
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
-        vendor = attrs.get("vendor")
+        organization = serializer_field_value(self, attrs, "organization")
+        vendor = serializer_field_value(self, attrs, "vendor")
         if vendor and organization and vendor.organization_id != organization.id:
             raise serializers.ValidationError({"vendor": "Vendor must belong to the same organization."})
         return attrs
@@ -84,8 +84,8 @@ class AiModelSerializer(OrganizationMembershipValidatorMixin, serializers.ModelS
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
-        ai_tool = attrs.get("ai_tool")
+        organization = serializer_field_value(self, attrs, "organization")
+        ai_tool = serializer_field_value(self, attrs, "ai_tool")
         if ai_tool and organization and ai_tool.organization_id != organization.id:
             raise serializers.ValidationError({"ai_tool": "AI tool must belong to the same organization."})
         return attrs
@@ -128,9 +128,9 @@ class AiUseCaseSerializer(OrganizationMembershipValidatorMixin, serializers.Mode
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
-        ai_tool = attrs.get("ai_tool")
-        organization_unit = attrs.get("organization_unit")
+        organization = serializer_field_value(self, attrs, "organization")
+        ai_tool = serializer_field_value(self, attrs, "ai_tool")
+        organization_unit = serializer_field_value(self, attrs, "organization_unit")
         if ai_tool and organization and ai_tool.organization_id != organization.id:
             raise serializers.ValidationError({"ai_tool": "AI tool must belong to the same organization."})
         if organization_unit and organization and organization_unit.organization_id != organization.id:
@@ -170,8 +170,8 @@ class DataSourceSerializer(OrganizationMembershipValidatorMixin, serializers.Mod
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
-        ai_use_case = attrs.get("ai_use_case")
+        organization = serializer_field_value(self, attrs, "organization")
+        ai_use_case = serializer_field_value(self, attrs, "ai_use_case")
         if ai_use_case and organization and ai_use_case.organization_id != organization.id:
             raise serializers.ValidationError({"ai_use_case": "AI use case must belong to the same organization."})
         return attrs
@@ -205,9 +205,9 @@ class AiAssetOwnerSerializer(OrganizationMembershipValidatorMixin, serializers.M
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
-        ai_use_case = attrs.get("ai_use_case")
-        membership = attrs.get("membership")
+        organization = serializer_field_value(self, attrs, "organization")
+        ai_use_case = serializer_field_value(self, attrs, "ai_use_case")
+        membership = serializer_field_value(self, attrs, "membership")
         errors = {}
         if ai_use_case and organization and ai_use_case.organization_id != organization.id:
             errors["ai_use_case"] = "AI use case must belong to the same organization."

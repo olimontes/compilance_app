@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
 from apps.ai_assets.models import AiUseCase
-from apps.common.tenancy import OrganizationMembershipValidatorMixin, user_has_active_membership
+from apps.common.tenancy import (
+    OrganizationMembershipValidatorMixin,
+    serializer_field_value,
+    user_has_active_membership,
+)
 from apps.organizations.models import Membership, Organization
 
 from .models import ActionItem, ActionPlan, Control, Policy, Risk, RiskAssessment, RiskControl
@@ -59,8 +63,8 @@ class RiskSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSeri
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
-        ai_use_case = attrs.get("ai_use_case")
+        organization = serializer_field_value(self, attrs, "organization")
+        ai_use_case = serializer_field_value(self, attrs, "ai_use_case")
         if ai_use_case and organization and ai_use_case.organization_id != organization.id:
             raise serializers.ValidationError({"ai_use_case": "AI use case must belong to the same organization."})
         return attrs
@@ -82,8 +86,8 @@ class RiskControlSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("You are not a member of this risk organization.")
 
     def validate(self, attrs):
-        risk = attrs.get("risk") or getattr(self.instance, "risk", None)
-        control = attrs.get("control") or getattr(self.instance, "control", None)
+        risk = serializer_field_value(self, attrs, "risk")
+        control = serializer_field_value(self, attrs, "control")
         if risk and control and risk.organization_id != control.organization_id:
             raise serializers.ValidationError({"control": "Control must belong to the same organization as the risk."})
         return attrs
@@ -121,8 +125,8 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("You are not a member of this risk organization.")
 
     def validate(self, attrs):
-        risk = attrs.get("risk") or getattr(self.instance, "risk", None)
-        assessed_by = attrs.get("assessed_by")
+        risk = serializer_field_value(self, attrs, "risk")
+        assessed_by = serializer_field_value(self, attrs, "assessed_by")
         if risk and assessed_by and risk.organization_id != assessed_by.organization_id:
             raise serializers.ValidationError({"assessed_by": "Membership must belong to the risk organization."})
         return attrs
@@ -158,8 +162,8 @@ class PolicySerializer(OrganizationMembershipValidatorMixin, serializers.ModelSe
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
-        owner_membership = attrs.get("owner_membership")
+        organization = serializer_field_value(self, attrs, "organization")
+        owner_membership = serializer_field_value(self, attrs, "owner_membership")
         if owner_membership and organization and owner_membership.organization_id != organization.id:
             raise serializers.ValidationError({"owner_membership": "Membership must belong to the same organization."})
         return attrs
@@ -214,12 +218,12 @@ class ActionPlanSerializer(OrganizationMembershipValidatorMixin, serializers.Mod
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
+        organization = serializer_field_value(self, attrs, "organization")
         related_fields = {
-            "risk": attrs.get("risk"),
-            "control": attrs.get("control"),
-            "policy": attrs.get("policy"),
-            "owner_membership": attrs.get("owner_membership"),
+            "risk": serializer_field_value(self, attrs, "risk"),
+            "control": serializer_field_value(self, attrs, "control"),
+            "policy": serializer_field_value(self, attrs, "policy"),
+            "owner_membership": serializer_field_value(self, attrs, "owner_membership"),
         }
         errors = {}
         for field_name, value in related_fields.items():
@@ -274,12 +278,12 @@ class ActionItemSerializer(OrganizationMembershipValidatorMixin, serializers.Mod
         read_only_fields = ("uuid", "created_at", "updated_at")
 
     def validate(self, attrs):
-        organization = attrs.get("organization") or getattr(self.instance, "organization", None)
+        organization = serializer_field_value(self, attrs, "organization")
         related_fields = {
-            "action_plan": attrs.get("action_plan"),
-            "risk": attrs.get("risk"),
-            "control": attrs.get("control"),
-            "owner_membership": attrs.get("owner_membership"),
+            "action_plan": serializer_field_value(self, attrs, "action_plan"),
+            "risk": serializer_field_value(self, attrs, "risk"),
+            "control": serializer_field_value(self, attrs, "control"),
+            "owner_membership": serializer_field_value(self, attrs, "owner_membership"),
         }
         errors = {}
         for field_name, value in related_fields.items():

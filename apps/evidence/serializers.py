@@ -1,7 +1,11 @@
 from rest_framework import serializers
 
 from apps.assessments.models import AssessmentAnswer
-from apps.common.tenancy import OrganizationMembershipValidatorMixin, user_has_active_membership
+from apps.common.tenancy import (
+    OrganizationMembershipValidatorMixin,
+    serializer_field_value,
+    user_has_active_membership,
+)
 from apps.compliance.models import Control, Risk
 from apps.organizations.models import Organization
 
@@ -68,11 +72,11 @@ class EvidenceLinkSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("You are not a member of this evidence organization.")
 
     def validate(self, attrs):
-        evidence = attrs.get("evidence") or getattr(self.instance, "evidence", None)
+        evidence = serializer_field_value(self, attrs, "evidence")
         targets = [
-            attrs.get("risk") or getattr(self.instance, "risk", None),
-            attrs.get("control") or getattr(self.instance, "control", None),
-            attrs.get("assessment_answer") or getattr(self.instance, "assessment_answer", None),
+            serializer_field_value(self, attrs, "risk"),
+            serializer_field_value(self, attrs, "control"),
+            serializer_field_value(self, attrs, "assessment_answer"),
         ]
         selected_targets = [target for target in targets if target is not None]
         if len(selected_targets) != 1:

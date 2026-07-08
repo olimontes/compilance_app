@@ -113,6 +113,28 @@ class EvidenceApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_update_evidence_link_can_replace_target_with_null(self):
+        evidence = Evidence.objects.create(
+            organization=self.organization,
+            uploaded_by=self.user,
+            title="Access policy",
+        )
+        link = EvidenceLink.objects.create(evidence=evidence, risk=self.risk)
+
+        response = self.client.patch(
+            f"/api/evidence-links/{link.id}/",
+            {
+                "risk": None,
+                "control": str(self.control.uuid),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        link.refresh_from_db()
+        self.assertIsNone(link.risk)
+        self.assertEqual(link.control, self.control)
+
     def test_list_evidence_only_returns_user_organizations(self):
         hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
         visible_evidence = Evidence.objects.create(
