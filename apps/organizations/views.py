@@ -1,5 +1,7 @@
 from rest_framework import viewsets
 
+from apps.audit.services import log_create_event
+
 from .models import Membership, Organization, OrganizationUnit
 from .serializers import MembershipSerializer, OrganizationSerializer, OrganizationUnitSerializer
 
@@ -36,6 +38,12 @@ class OrganizationViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
             role=Membership.Role.OWNER,
             status=Membership.Status.ACTIVE,
         )
+        log_create_event(
+            actor_user=self.request.user,
+            organization=organization,
+            instance=organization,
+            event_type="organization.created",
+        )
 
 
 class OrganizationUnitViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
@@ -45,6 +53,15 @@ class OrganizationUnitViewSet(OrganizationAccessMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         return OrganizationUnit.objects.filter(organization_id__in=self.user_organization_ids())
+
+    def perform_create(self, serializer):
+        unit = serializer.save()
+        log_create_event(
+            actor_user=self.request.user,
+            organization=unit.organization,
+            instance=unit,
+            event_type="organization_unit.created",
+        )
 
 
 class MembershipViewSet(OrganizationAccessMixin, viewsets.ReadOnlyModelViewSet):

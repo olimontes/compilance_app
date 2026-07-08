@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 
+from apps.audit.services import log_create_event
 from apps.organizations.models import Membership, Organization
 
 from .models import (
@@ -66,7 +67,13 @@ class AssessmentViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        assessment = serializer.save(created_by=self.request.user)
+        log_create_event(
+            actor_user=self.request.user,
+            organization=assessment.organization,
+            instance=assessment,
+            event_type="assessment.started",
+        )
 
 
 class AssessmentAnswerViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
@@ -80,4 +87,10 @@ class AssessmentAnswerViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelVie
         ).select_related("assessment", "question", "answered_by")
 
     def perform_create(self, serializer):
-        serializer.save(answered_by=self.request.user)
+        answer = serializer.save(answered_by=self.request.user)
+        log_create_event(
+            actor_user=self.request.user,
+            organization=answer.assessment.organization,
+            instance=answer,
+            event_type="assessment_answer.created",
+        )

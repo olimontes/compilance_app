@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.audit.models import AuditEvent
 from apps.organizations.models import Membership, Organization, OrganizationUnit
 
 from .models import AiTool, AiUseCase, AiVendor, RiskLevel
@@ -32,6 +33,7 @@ class AiAssetApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(AiVendor.objects.filter(name="OpenAI").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="ai_vendor.created").exists())
 
     def test_create_ai_tool_and_use_case(self):
         vendor = AiVendor.objects.create(organization=self.organization, name="OpenAI")
@@ -76,6 +78,8 @@ class AiAssetApiTests(APITestCase):
 
         self.assertEqual(use_case_response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(AiUseCase.objects.filter(name="Contract review").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="ai_tool.created").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="ai_use_case.created").exists())
 
     def test_list_ai_tools_only_returns_user_organizations(self):
         hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")

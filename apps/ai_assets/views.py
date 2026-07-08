@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 
+from apps.audit.services import log_create_event
 from apps.organizations.models import Membership, Organization
 
 from .models import AiTool, AiUseCase, AiVendor
@@ -29,6 +30,15 @@ class AiVendorViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(risk_level=risk_level)
         return queryset
 
+    def perform_create(self, serializer):
+        vendor = serializer.save()
+        log_create_event(
+            actor_user=self.request.user,
+            organization=vendor.organization,
+            instance=vendor,
+            event_type="ai_vendor.created",
+        )
+
 
 class AiToolViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = AiToolSerializer
@@ -41,6 +51,15 @@ class AiToolViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
         if status:
             queryset = queryset.filter(status=status)
         return queryset
+
+    def perform_create(self, serializer):
+        tool = serializer.save()
+        log_create_event(
+            actor_user=self.request.user,
+            organization=tool.organization,
+            instance=tool,
+            event_type="ai_tool.created",
+        )
 
 
 class AiUseCaseViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
@@ -57,3 +76,12 @@ class AiUseCaseViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
         if lifecycle_stage:
             queryset = queryset.filter(lifecycle_stage=lifecycle_stage)
         return queryset
+
+    def perform_create(self, serializer):
+        use_case = serializer.save()
+        log_create_event(
+            actor_user=self.request.user,
+            organization=use_case.organization,
+            instance=use_case,
+            event_type="ai_use_case.created",
+        )

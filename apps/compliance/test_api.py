@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.ai_assets.models import AiTool, AiUseCase, RiskLevel
+from apps.audit.models import AuditEvent
 from apps.organizations.models import Membership, Organization
 
 from .models import Control, Risk, RiskControl
@@ -58,6 +59,8 @@ class ComplianceApiTests(APITestCase):
         self.assertEqual(risk_response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(Control.objects.filter(code="CTRL-001").exists())
         self.assertTrue(Risk.objects.filter(title="Confidential information exposure").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="control.created").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="risk.created").exists())
 
     def test_create_risk_control_link(self):
         control = Control.objects.create(

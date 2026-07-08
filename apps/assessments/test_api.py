@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.audit.models import AuditEvent
 from apps.organizations.models import Membership, Organization
 
 from .models import (
@@ -57,6 +58,7 @@ class AssessmentApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assessment = Assessment.objects.get(title="2026 AI governance assessment")
         self.assertEqual(assessment.created_by, self.user)
+        self.assertTrue(AuditEvent.objects.filter(event_type="assessment.started").exists())
 
     def test_create_assessment_answer(self):
         assessment = Assessment.objects.create(
@@ -81,6 +83,7 @@ class AssessmentApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         answer = AssessmentAnswer.objects.get(assessment=assessment, question=self.question)
         self.assertEqual(answer.answered_by, self.user)
+        self.assertTrue(AuditEvent.objects.filter(event_type="assessment_answer.created").exists())
 
     def test_list_assessments_only_returns_user_organizations(self):
         visible = Assessment.objects.create(

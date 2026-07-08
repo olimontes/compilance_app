@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 
+from apps.audit.services import log_create_event
 from apps.organizations.models import Membership, Organization
 
 from .models import Control, Risk, RiskControl
@@ -32,6 +33,15 @@ class ControlViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(domain=domain)
         return queryset
 
+    def perform_create(self, serializer):
+        control = serializer.save()
+        log_create_event(
+            actor_user=self.request.user,
+            organization=control.organization,
+            instance=control,
+            event_type="control.created",
+        )
+
 
 class RiskViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     serializer_class = RiskSerializer
@@ -47,6 +57,15 @@ class RiskViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
         if severity:
             queryset = queryset.filter(severity=severity)
         return queryset
+
+    def perform_create(self, serializer):
+        risk = serializer.save()
+        log_create_event(
+            actor_user=self.request.user,
+            organization=risk.organization,
+            instance=risk,
+            event_type="risk.created",
+        )
 
 
 class RiskControlViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):

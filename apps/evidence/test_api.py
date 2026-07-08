@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.ai_assets.models import RiskLevel
+from apps.audit.models import AuditEvent
 from apps.compliance.models import Control, Risk
 from apps.organizations.models import Membership, Organization
 
@@ -50,6 +51,7 @@ class EvidenceApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         evidence = Evidence.objects.get(title="Access policy")
         self.assertEqual(evidence.uploaded_by, self.user)
+        self.assertTrue(AuditEvent.objects.filter(event_type="evidence.uploaded").exists())
 
     def test_create_evidence_link_to_risk(self):
         evidence = Evidence.objects.create(

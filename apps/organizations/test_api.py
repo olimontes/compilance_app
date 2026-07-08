@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.audit.models import AuditEvent
+
 from .models import Membership, Organization, OrganizationUnit
 
 
@@ -34,6 +36,7 @@ class OrganizationApiTests(APITestCase):
                 role=Membership.Role.OWNER,
             ).exists()
         )
+        self.assertTrue(AuditEvent.objects.filter(event_type="organization.created").exists())
 
     def test_list_organizations_only_returns_user_memberships(self):
         visible = Organization.objects.create(name="Visible", slug="visible")
@@ -70,3 +73,4 @@ class OrganizationApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(OrganizationUnit.objects.filter(slug="legal").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="organization_unit.created").exists())

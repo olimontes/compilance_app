@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 
+from apps.audit.services import log_create_event
 from apps.organizations.models import Membership, Organization
 
 from .models import Evidence, EvidenceLink
@@ -33,7 +34,13 @@ class EvidenceViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user)
+        evidence = serializer.save(uploaded_by=self.request.user)
+        log_create_event(
+            actor_user=self.request.user,
+            organization=evidence.organization,
+            instance=evidence,
+            event_type="evidence.uploaded",
+        )
 
 
 class EvidenceLinkViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
