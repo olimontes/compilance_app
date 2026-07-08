@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 from apps.audit.models import AuditEvent
 from apps.organizations.models import Membership, Organization, OrganizationUnit
 
-from .models import AiTool, AiUseCase, AiVendor, RiskLevel
+from .models import AiAssetOwner, AiModel, AiTool, AiUseCase, AiVendor, DataSource, RiskLevel
 
 
 class AiAssetApiTests(APITestCase):
@@ -81,6 +81,68 @@ class AiAssetApiTests(APITestCase):
         self.assertTrue(AuditEvent.objects.filter(event_type="ai_tool.created").exists())
         self.assertTrue(AuditEvent.objects.filter(event_type="ai_use_case.created").exists())
 
+    def test_create_ai_model(self):
+        tool = AiTool.objects.create(organization=self.organization, name="ChatGPT Enterprise")
+
+        response = self.client.post(
+            "/api/ai-models/",
+            {
+                "organization": str(self.organization.uuid),
+                "ai_tool": str(tool.uuid),
+                "name": "GPT-4.1",
+                "provider_model_id": "gpt-4.1",
+                "model_type": AiModel.ModelType.TEXT,
+                "status": AiModel.Status.ACTIVE,
+                "risk_level": RiskLevel.HIGH,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(AiModel.objects.filter(name="GPT-4.1").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="ai_model.created").exists())
+
+    def test_create_data_source_and_asset_owner(self):
+        use_case = AiUseCase.objects.create(
+            organization=self.organization,
+            name="Contract review",
+            purpose="Support first-pass contract analysis.",
+        )
+        membership = Membership.objects.get(user=self.user, organization=self.organization)
+
+        data_source_response = self.client.post(
+            "/api/data-sources/",
+            {
+                "organization": str(self.organization.uuid),
+                "ai_use_case": str(use_case.uuid),
+                "name": "Contract repository",
+                "source_type": DataSource.SourceType.DOCUMENT,
+                "data_classification": AiUseCase.DataClassification.CONFIDENTIAL,
+                "contains_personal_data": True,
+                "contains_sensitive_data": False,
+            },
+            format="json",
+        )
+
+        self.assertEqual(data_source_response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(DataSource.objects.filter(name="Contract repository").exists())
+
+        owner_response = self.client.post(
+            "/api/ai-asset-owners/",
+            {
+                "organization": str(self.organization.uuid),
+                "ai_use_case": str(use_case.uuid),
+                "membership": str(membership.uuid),
+                "responsibility": AiAssetOwner.Responsibility.BUSINESS_OWNER,
+            },
+            format="json",
+        )
+
+        self.assertEqual(owner_response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(AiAssetOwner.objects.filter(ai_use_case=use_case, membership=membership).exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="data_source.created").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="ai_asset_owner.created").exists())
+
     def test_list_ai_tools_only_returns_user_organizations(self):
         hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
         visible_tool = AiTool.objects.create(organization=self.organization, name="Visible Tool")
@@ -103,6 +165,45 @@ class AiAssetApiTests(APITestCase):
                 "organization": str(self.organization.uuid),
                 "vendor": str(hidden_vendor.uuid),
                 "name": "Cross tenant tool",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_ai_model_rejects_tool_from_another_organization(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        hidden_tool = AiTool.objects.create(organization=hidden_org, name="Hidden Tool")
+
+        response = self.client.post(
+            "/api/ai-models/",
+            {
+                "organization": str(self.organization.uuid),
+                "ai_tool": str(hidden_tool.uuid),
+                "name": "Cross tenant model",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_asset_owner_rejects_membership_from_another_organization(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        hidden_user = get_user_model().objects.create_user(username="hidden", email="hidden@example.com")
+        hidden_membership = Membership.objects.create(user=hidden_user, organization=hidden_org)
+        use_case = AiUseCase.objects.create(
+            organization=self.organization,
+            name="Contract review",
+            purpose="Support first-pass contract analysis.",
+        )
+
+        response = self.client.post(
+            "/api/ai-asset-owners/",
+            {
+                "organization": str(self.organization.uuid),
+                "ai_use_case": str(use_case.uuid),
+                "membership": str(hidden_membership.uuid),
+                "responsibility": AiAssetOwner.Responsibility.BUSINESS_OWNER,
             },
             format="json",
         )

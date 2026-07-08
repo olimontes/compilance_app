@@ -8,7 +8,7 @@ AI Governance API.
 - `apps.accounts`: usuario customizado, perfil e preferencias.
 - `apps.common`: mixin abstrato com `uuid`, `created_at` e `updated_at`.
 - `apps.organizations`: organizacoes, unidades e memberships.
-- `apps.ai_assets`: fornecedores, ferramentas e casos de uso de IA.
+- `apps.ai_assets`: fornecedores, ferramentas, modelos, fontes de dados, casos de uso e responsaveis.
 - `apps.assessments`: frameworks, dimensoes, perguntas, avaliacoes e respostas.
 - `apps.compliance`: riscos, controles e vinculo risco-controle.
 - `apps.evidence`: evidencias e links para riscos, controles ou respostas.
@@ -56,7 +56,10 @@ Carregar controles padrao para uma organizacao:
 - `/api/memberships/`
 - `/api/ai-vendors/`
 - `/api/ai-tools/`
+- `/api/ai-models/`
 - `/api/ai-use-cases/`
+- `/api/data-sources/`
+- `/api/ai-asset-owners/`
 - `/api/assessment-frameworks/`
 - `/api/assessment-dimensions/`
 - `/api/assessment-questions/`

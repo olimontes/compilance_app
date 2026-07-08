@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AiTool, AiUseCase, AiVendor
+from .models import AiAssetOwner, AiModel, AiTool, AiUseCase, AiVendor, DataSource
 
 
 @admin.register(AiVendor)
@@ -33,6 +33,14 @@ class AiToolAdmin(admin.ModelAdmin):
     readonly_fields = ("uuid", "created_at", "updated_at")
 
 
+@admin.register(AiModel)
+class AiModelAdmin(admin.ModelAdmin):
+    list_display = ("name", "organization", "ai_tool", "model_type", "status", "risk_level")
+    list_filter = ("model_type", "status", "risk_level", "organization")
+    search_fields = ("name", "provider_model_id", "ai_tool__name", "organization__name")
+    readonly_fields = ("uuid", "created_at", "updated_at")
+
+
 @admin.register(AiUseCase)
 class AiUseCaseAdmin(admin.ModelAdmin):
     list_display = (
@@ -52,3 +60,32 @@ class AiUseCaseAdmin(admin.ModelAdmin):
     search_fields = ("name", "business_area", "organization__name", "ai_tool__name")
     readonly_fields = ("uuid", "created_at", "updated_at")
 
+
+@admin.register(DataSource)
+class DataSourceAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "organization",
+        "ai_use_case",
+        "source_type",
+        "data_classification",
+        "contains_personal_data",
+        "contains_sensitive_data",
+    )
+    list_filter = (
+        "source_type",
+        "data_classification",
+        "contains_personal_data",
+        "contains_sensitive_data",
+        "organization",
+    )
+    search_fields = ("name", "description", "ai_use_case__name", "organization__name")
+    readonly_fields = ("uuid", "created_at", "updated_at")
+
+
+@admin.register(AiAssetOwner)
+class AiAssetOwnerAdmin(admin.ModelAdmin):
+    list_display = ("ai_use_case", "membership", "organization", "responsibility")
+    list_filter = ("responsibility", "organization")
+    search_fields = ("ai_use_case__name", "membership__user__username", "membership__user__email")
+    readonly_fields = ("uuid", "created_at", "updated_at")
