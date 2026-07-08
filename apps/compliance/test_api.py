@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -6,7 +7,7 @@ from apps.ai_assets.models import AiTool, AiUseCase, RiskLevel
 from apps.audit.models import AuditEvent
 from apps.organizations.models import Membership, Organization
 
-from .models import Control, Risk, RiskControl
+from .models import ActionItem, ActionPlan, Control, Policy, Risk, RiskAssessment, RiskControl
 
 
 class ComplianceApiTests(APITestCase):
@@ -89,6 +90,94 @@ class ComplianceApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(RiskControl.objects.filter(risk=risk, control=control).exists())
 
+    def test_create_risk_assessment_policy_action_plan_and_item(self):
+        membership = Membership.objects.get(user=self.user, organization=self.organization)
+        control = Control.objects.create(
+            organization=self.organization,
+            code="CTRL-001",
+            title="Access review",
+        )
+        risk = Risk.objects.create(
+            organization=self.organization,
+            ai_use_case=self.use_case,
+            title="Confidential information exposure",
+            likelihood=3,
+            impact=4,
+            severity=RiskLevel.HIGH,
+        )
+
+        risk_assessment_response = self.client.post(
+            "/api/risk-assessments/",
+            {
+                "risk": str(risk.uuid),
+                "assessed_by": str(membership.uuid),
+                "likelihood": 4,
+                "impact": 4,
+                "severity": RiskLevel.HIGH,
+                "rationale": "Sensitive contracts are processed.",
+                "assessed_at": timezone.now().isoformat(),
+            },
+            format="json",
+        )
+
+        policy_response = self.client.post(
+            "/api/policies/",
+            {
+                "organization": str(self.organization.uuid),
+                "code": "POL-001",
+                "title": "AI acceptable use",
+                "description": "Rules for approved AI usage.",
+                "owner_membership": str(membership.uuid),
+                "status": Policy.Status.ACTIVE,
+            },
+            format="json",
+        )
+
+        self.assertEqual(risk_assessment_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(policy_response.status_code, status.HTTP_201_CREATED)
+        policy = Policy.objects.get(code="POL-001")
+
+        action_plan_response = self.client.post(
+            "/api/action-plans/",
+            {
+                "organization": str(self.organization.uuid),
+                "risk": str(risk.uuid),
+                "control": str(control.uuid),
+                "policy": str(policy.uuid),
+                "title": "Reduce contract exposure risk",
+                "description": "Define controls for contract analysis.",
+                "status": ActionPlan.Status.OPEN,
+                "owner_membership": str(membership.uuid),
+            },
+            format="json",
+        )
+
+        self.assertEqual(action_plan_response.status_code, status.HTTP_201_CREATED)
+        action_plan = ActionPlan.objects.get(title="Reduce contract exposure risk")
+
+        action_item_response = self.client.post(
+            "/api/action-items/",
+            {
+                "organization": str(self.organization.uuid),
+                "action_plan": str(action_plan.uuid),
+                "risk": str(risk.uuid),
+                "control": str(control.uuid),
+                "title": "Review access permissions",
+                "description": "Confirm least privilege.",
+                "status": ActionItem.Status.TODO,
+                "owner_membership": str(membership.uuid),
+            },
+            format="json",
+        )
+
+        self.assertEqual(action_item_response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(RiskAssessment.objects.filter(risk=risk).exists())
+        self.assertTrue(ActionItem.objects.filter(title="Review access permissions").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="risk_assessment.created").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="policy.created").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="action_plan.created").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="action_item.created").exists())
+
     def test_list_risks_only_returns_user_organizations(self):
         hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
         visible_risk = Risk.objects.create(
@@ -132,6 +221,28 @@ class ComplianceApiTests(APITestCase):
                 "likelihood": 3,
                 "impact": 4,
                 "severity": RiskLevel.HIGH,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_action_plan_rejects_cross_tenant_risk(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        hidden_risk = Risk.objects.create(
+            organization=hidden_org,
+            title="Hidden risk",
+            likelihood=2,
+            impact=3,
+            severity=RiskLevel.MEDIUM,
+        )
+
+        response = self.client.post(
+            "/api/action-plans/",
+            {
+                "organization": str(self.organization.uuid),
+                "risk": str(hidden_risk.uuid),
+                "title": "Cross tenant plan",
             },
             format="json",
         )

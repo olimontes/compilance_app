@@ -10,7 +10,7 @@ AI Governance API.
 - `apps.organizations`: organizacoes, unidades e memberships.
 - `apps.ai_assets`: fornecedores, ferramentas, modelos, fontes de dados, casos de uso e responsaveis.
 - `apps.assessments`: frameworks, dimensoes, perguntas, avaliacoes, respostas, scores e recomendacoes.
-- `apps.compliance`: riscos, controles e vinculo risco-controle.
+- `apps.compliance`: riscos, controles, politicas, avaliacoes de risco e planos de acao.
 - `apps.evidence`: evidencias e links para riscos, controles ou respostas.
 - `apps.audit`: eventos de auditoria e logs de alteracao.
 - `apps.analytics`: definicoes de metricas, snapshots, checks e ingestion runs.
@@ -70,6 +70,10 @@ Carregar controles padrao para uma organizacao:
 - `/api/controls/`
 - `/api/risks/`
 - `/api/risk-controls/`
+- `/api/risk-assessments/`
+- `/api/policies/`
+- `/api/action-plans/`
+- `/api/action-items/`
 - `/api/evidence/`
 - `/api/evidence-links/`
 - `/api/metric-definitions/`
