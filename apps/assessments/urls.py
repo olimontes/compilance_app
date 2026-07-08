@@ -7,6 +7,8 @@ from .views import (
     AssessmentFrameworkViewSet,
     AssessmentQuestionViewSet,
     AssessmentViewSet,
+    MaturityScoreViewSet,
+    RecommendationViewSet,
 )
 
 router = DefaultRouter()
@@ -15,8 +17,9 @@ router.register("assessment-dimensions", AssessmentDimensionViewSet, basename="a
 router.register("assessment-questions", AssessmentQuestionViewSet, basename="assessment-question")
 router.register("assessments", AssessmentViewSet, basename="assessment")
 router.register("assessment-answers", AssessmentAnswerViewSet, basename="assessment-answer")
+router.register("maturity-scores", MaturityScoreViewSet, basename="maturity-score")
+router.register("recommendations", RecommendationViewSet, basename="recommendation")
 
 urlpatterns = [
     path("", include(router.urls)),
 ]
-

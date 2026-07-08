@@ -6,6 +6,8 @@ from .models import (
     AssessmentDimension,
     AssessmentFramework,
     AssessmentQuestion,
+    MaturityScore,
+    Recommendation,
 )
 
 
@@ -56,3 +58,18 @@ class AssessmentAnswerAdmin(admin.ModelAdmin):
     search_fields = ("assessment__title", "question__code", "notes")
     readonly_fields = ("uuid", "created_at", "updated_at")
 
+
+@admin.register(MaturityScore)
+class MaturityScoreAdmin(admin.ModelAdmin):
+    list_display = ("assessment", "dimension", "score", "max_score", "percentage", "computed_at")
+    list_filter = ("assessment__organization", "assessment__framework")
+    search_fields = ("assessment__title", "dimension__code", "dimension__name")
+    readonly_fields = ("uuid", "created_at", "updated_at")
+
+
+@admin.register(Recommendation)
+class RecommendationAdmin(admin.ModelAdmin):
+    list_display = ("title", "assessment", "dimension", "priority", "status", "due_date")
+    list_filter = ("priority", "status", "assessment__organization", "assessment__framework")
+    search_fields = ("title", "description", "assessment__title", "dimension__name")
+    readonly_fields = ("uuid", "created_at", "updated_at")

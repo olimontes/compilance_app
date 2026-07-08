@@ -9,6 +9,8 @@ from .models import (
     AssessmentDimension,
     AssessmentFramework,
     AssessmentQuestion,
+    MaturityScore,
+    Recommendation,
 )
 
 
@@ -140,4 +142,87 @@ class AssessmentAnswerSerializer(serializers.ModelSerializer):
         question = attrs.get("question")
         if assessment and question and question.framework_id != assessment.framework_id:
             raise serializers.ValidationError({"question": "Question must belong to the assessment framework."})
+        return attrs
+
+
+class MaturityScoreSerializer(serializers.ModelSerializer):
+    assessment = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Assessment.objects.all(),
+    )
+    dimension = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=AssessmentDimension.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = MaturityScore
+        fields = (
+            "uuid",
+            "assessment",
+            "dimension",
+            "score",
+            "max_score",
+            "percentage",
+            "computed_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("uuid", "created_at", "updated_at")
+
+    def validate_assessment(self, assessment):
+        user = self.context["request"].user
+        if user_has_active_membership(user, assessment.organization):
+            return assessment
+        raise serializers.ValidationError("You are not a member of this assessment organization.")
+
+    def validate(self, attrs):
+        assessment = attrs.get("assessment") or getattr(self.instance, "assessment", None)
+        dimension = attrs.get("dimension")
+        if assessment and dimension and dimension.framework_id != assessment.framework_id:
+            raise serializers.ValidationError({"dimension": "Dimension must belong to the assessment framework."})
+        return attrs
+
+
+class RecommendationSerializer(serializers.ModelSerializer):
+    assessment = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=Assessment.objects.all(),
+    )
+    dimension = serializers.SlugRelatedField(
+        slug_field="uuid",
+        queryset=AssessmentDimension.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = Recommendation
+        fields = (
+            "uuid",
+            "assessment",
+            "dimension",
+            "title",
+            "description",
+            "priority",
+            "status",
+            "due_date",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("uuid", "created_at", "updated_at")
+
+    def validate_assessment(self, assessment):
+        user = self.context["request"].user
+        if user_has_active_membership(user, assessment.organization):
+            return assessment
+        raise serializers.ValidationError("You are not a member of this assessment organization.")
+
+    def validate(self, attrs):
+        assessment = attrs.get("assessment") or getattr(self.instance, "assessment", None)
+        dimension = attrs.get("dimension")
+        if assessment and dimension and dimension.framework_id != assessment.framework_id:
+            raise serializers.ValidationError({"dimension": "Dimension must belong to the assessment framework."})
         return attrs

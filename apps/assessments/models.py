@@ -167,3 +167,72 @@ class AssessmentAnswer(TimestampedUUIDModel):
     def __str__(self) -> str:
         return f"{self.assessment} / {self.question.code}"
 
+
+class MaturityScore(TimestampedUUIDModel):
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name="maturity_scores",
+    )
+    dimension = models.ForeignKey(
+        AssessmentDimension,
+        on_delete=models.CASCADE,
+        related_name="maturity_scores",
+        blank=True,
+        null=True,
+    )
+    score = models.DecimalField(max_digits=8, decimal_places=2)
+    max_score = models.DecimalField(max_digits=8, decimal_places=2)
+    percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    computed_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["assessment__title", "dimension__display_order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["assessment", "dimension"],
+                name="unique_maturity_score_assessment_dimension",
+            )
+        ]
+
+    def __str__(self) -> str:
+        dimension = self.dimension.code if self.dimension else "overall"
+        return f"{self.assessment} / {dimension}: {self.percentage}%"
+
+
+class Recommendation(TimestampedUUIDModel):
+    class Priority(models.TextChoices):
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
+        CRITICAL = "critical", "Critical"
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        IN_PROGRESS = "in_progress", "In progress"
+        DONE = "done", "Done"
+        DISMISSED = "dismissed", "Dismissed"
+
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name="recommendations",
+    )
+    dimension = models.ForeignKey(
+        AssessmentDimension,
+        on_delete=models.SET_NULL,
+        related_name="recommendations",
+        blank=True,
+        null=True,
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    priority = models.CharField(max_length=30, choices=Priority.choices, default=Priority.MEDIUM)
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.OPEN)
+    due_date = models.DateField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["assessment__title", "priority", "title"]
+
+    def __str__(self) -> str:
+        return self.title

@@ -9,7 +9,7 @@ AI Governance API.
 - `apps.common`: mixin abstrato com `uuid`, `created_at` e `updated_at`.
 - `apps.organizations`: organizacoes, unidades e memberships.
 - `apps.ai_assets`: fornecedores, ferramentas, modelos, fontes de dados, casos de uso e responsaveis.
-- `apps.assessments`: frameworks, dimensoes, perguntas, avaliacoes e respostas.
+- `apps.assessments`: frameworks, dimensoes, perguntas, avaliacoes, respostas, scores e recomendacoes.
 - `apps.compliance`: riscos, controles e vinculo risco-controle.
 - `apps.evidence`: evidencias e links para riscos, controles ou respostas.
 - `apps.audit`: eventos de auditoria e logs de alteracao.
@@ -65,6 +65,8 @@ Carregar controles padrao para uma organizacao:
 - `/api/assessment-questions/`
 - `/api/assessments/`
 - `/api/assessment-answers/`
+- `/api/maturity-scores/`
+- `/api/recommendations/`
 - `/api/controls/`
 - `/api/risks/`
 - `/api/risk-controls/`

@@ -9,6 +9,8 @@ from .models import (
     AssessmentDimension,
     AssessmentFramework,
     AssessmentQuestion,
+    MaturityScore,
+    Recommendation,
 )
 from .serializers import (
     AssessmentAnswerSerializer,
@@ -16,6 +18,8 @@ from .serializers import (
     AssessmentFrameworkSerializer,
     AssessmentQuestionSerializer,
     AssessmentSerializer,
+    MaturityScoreSerializer,
+    RecommendationSerializer,
 )
 
 
@@ -82,4 +86,55 @@ class AssessmentAnswerViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelVie
             organization=answer.assessment.organization,
             instance=answer,
             event_type="assessment_answer.created",
+        )
+
+
+class MaturityScoreViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
+    serializer_class = MaturityScoreSerializer
+    lookup_field = "uuid"
+    queryset = MaturityScore.objects.none()
+
+    def get_queryset(self):
+        queryset = MaturityScore.objects.filter(
+            assessment__organization_id__in=self.user_organization_ids()
+        ).select_related("assessment", "dimension")
+        assessment = self.request.query_params.get("assessment")
+        if assessment:
+            queryset = queryset.filter(assessment__uuid=assessment)
+        return queryset
+
+    def perform_create(self, serializer):
+        maturity_score = serializer.save()
+        log_create_event(
+            actor_user=self.request.user,
+            organization=maturity_score.assessment.organization,
+            instance=maturity_score,
+            event_type="maturity_score.created",
+        )
+
+
+class RecommendationViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
+    serializer_class = RecommendationSerializer
+    lookup_field = "uuid"
+    queryset = Recommendation.objects.none()
+
+    def get_queryset(self):
+        queryset = Recommendation.objects.filter(
+            assessment__organization_id__in=self.user_organization_ids()
+        ).select_related("assessment", "dimension")
+        status = self.request.query_params.get("status")
+        priority = self.request.query_params.get("priority")
+        if status:
+            queryset = queryset.filter(status=status)
+        if priority:
+            queryset = queryset.filter(priority=priority)
+        return queryset
+
+    def perform_create(self, serializer):
+        recommendation = serializer.save()
+        log_create_event(
+            actor_user=self.request.user,
+            organization=recommendation.assessment.organization,
+            instance=recommendation,
+            event_type="recommendation.created",
         )

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -11,6 +12,8 @@ from .models import (
     AssessmentDimension,
     AssessmentFramework,
     AssessmentQuestion,
+    MaturityScore,
+    Recommendation,
 )
 
 
@@ -85,6 +88,48 @@ class AssessmentApiTests(APITestCase):
         self.assertEqual(answer.answered_by, self.user)
         self.assertTrue(AuditEvent.objects.filter(event_type="assessment_answer.created").exists())
 
+    def test_create_maturity_score_and_recommendation(self):
+        assessment = Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=self.user,
+            title="2026 AI governance assessment",
+        )
+
+        score_response = self.client.post(
+            "/api/maturity-scores/",
+            {
+                "assessment": str(assessment.uuid),
+                "dimension": str(self.dimension.uuid),
+                "score": "7.00",
+                "max_score": "10.00",
+                "percentage": "70.00",
+                "computed_at": timezone.now().isoformat(),
+            },
+            format="json",
+        )
+
+        self.assertEqual(score_response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(MaturityScore.objects.filter(assessment=assessment, dimension=self.dimension).exists())
+
+        recommendation_response = self.client.post(
+            "/api/recommendations/",
+            {
+                "assessment": str(assessment.uuid),
+                "dimension": str(self.dimension.uuid),
+                "title": "Improve privacy classification",
+                "description": "Document data classification for AI use cases.",
+                "priority": Recommendation.Priority.HIGH,
+                "status": Recommendation.Status.OPEN,
+            },
+            format="json",
+        )
+
+        self.assertEqual(recommendation_response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Recommendation.objects.filter(title="Improve privacy classification").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="maturity_score.created").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="recommendation.created").exists())
+
     def test_list_assessments_only_returns_user_organizations(self):
         visible = Assessment.objects.create(
             organization=self.organization,
@@ -116,6 +161,37 @@ class AssessmentApiTests(APITestCase):
                 "organization": str(hidden_org.uuid),
                 "framework": str(self.framework.uuid),
                 "title": "Cross tenant assessment",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_recommendation_rejects_dimension_from_other_framework(self):
+        other_framework = AssessmentFramework.objects.create(
+            code="OTHER",
+            name="Other Framework",
+            version="1.0",
+        )
+        other_dimension = AssessmentDimension.objects.create(
+            framework=other_framework,
+            code="other",
+            name="Other",
+        )
+        assessment = Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=self.user,
+            title="2026 AI governance assessment",
+        )
+
+        response = self.client.post(
+            "/api/recommendations/",
+            {
+                "assessment": str(assessment.uuid),
+                "dimension": str(other_dimension.uuid),
+                "title": "Invalid recommendation",
+                "description": "Wrong framework dimension.",
             },
             format="json",
         )
