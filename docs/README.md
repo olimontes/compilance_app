@@ -34,6 +34,7 @@ versao da camada de dados da plataforma.
 - Guia de Git Flow em `docs/GITFLOW.md`
 - Plano de execucao de dados em `docs/PLANO_DADOS.md`
 - Status da camada de dados em `docs/STATUS_CAMADA_DADOS.md`
+- Controle de passos do projeto em `docs/PASSOS_PROJETO.md`
 - README principal na raiz do repositorio
 
 ## O que ainda nao existe
@@ -44,7 +45,26 @@ versao da camada de dados da plataforma.
 - Jobs Celery em producao gratuita
 - Upload real de arquivos de evidencia em storage externo
 
-## Rodar local com SQLite
+## Rodar local com PostgreSQL
+
+Suba PostgreSQL e Redis:
+
+```bash
+docker compose up -d db redis
+```
+
+Crie um `.env` local:
+
+```text
+DJANGO_ENV=local
+DJANGO_DEBUG=true
+DJANGO_SECRET_KEY=unsafe-local-dev-key-change-me
+DATABASE_URL=postgres://governance:governance@localhost:5433/governance
+POSTGRES_PORT=5433
+REDIS_URL=redis://localhost:6379/0
+```
+
+Use `5432` em `POSTGRES_PORT` e `DATABASE_URL` se essa porta estiver livre.
 
 ```bash
 python -m venv .venv
@@ -55,6 +75,9 @@ python manage.py createsuperuser
 python manage.py seed_assessment_frameworks
 python manage.py runserver
 ```
+
+SQLite segue disponivel apenas como fallback local quando `DATABASE_URL` nao
+estiver definida.
 
 ## Rodar local com Docker
 
@@ -149,3 +172,6 @@ python manage.py generate_metric_snapshots
 
 A documentacao detalhada fica em `docs/CAMADA_DADOS.md` e
 `docs/STATUS_CAMADA_DADOS.md`.
+
+Para acompanhar o que ja foi feito e os proximos passos do produto, use
+`docs/PASSOS_PROJETO.md`.

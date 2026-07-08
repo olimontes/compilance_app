@@ -11,7 +11,7 @@ serao implementados.
 
 - Backend: Python 3.14, Django 6, Django REST Framework.
 - API docs: drf-spectacular com Swagger em `/api/docs/`.
-- Banco de dados: PostgreSQL em producao; SQLite apenas como fallback local.
+- Banco de dados: PostgreSQL em producao e desenvolvimento; SQLite apenas como fallback local.
 - Jobs e fila: Celery com Redis/Key Value Redis-compatible.
 - Servidor de aplicacao: Gunicorn.
 - Static files do Django: WhiteNoise.
@@ -32,6 +32,7 @@ serao implementados.
 - `Procfile` para plataformas estilo Heroku/Railway.
 - Guia de Git Flow em `docs/GITFLOW.md`.
 - Plano de execucao da camada de dados em `docs/PLANO_DADOS.md`.
+- Controle de passos do projeto em `docs/PASSOS_PROJETO.md`.
 
 ## O que ainda nao existe
 
@@ -42,7 +43,27 @@ serao implementados.
 - Motor de regras.
 - Integracoes com IA.
 
-## Rodar local com SQLite
+## Rodar local com PostgreSQL
+
+Suba PostgreSQL e Redis:
+
+```bash
+docker compose up -d db redis
+```
+
+Crie um arquivo `.env` local com as variaveis abaixo:
+
+```text
+DJANGO_ENV=local
+DJANGO_DEBUG=true
+DJANGO_SECRET_KEY=unsafe-local-dev-key-change-me
+DATABASE_URL=postgres://governance:governance@localhost:5433/governance
+POSTGRES_PORT=5433
+REDIS_URL=redis://localhost:6379/0
+```
+
+Use `5432` em `POSTGRES_PORT` e `DATABASE_URL` se essa porta estiver livre na
+sua maquina.
 
 ```bash
 python -m venv .venv
@@ -58,6 +79,15 @@ Depois acesse:
 - API: `http://localhost:8000/api/health/`
 - Admin: `http://localhost:8000/admin/`
 - Docs: `http://localhost:8000/api/docs/`
+
+## Rodar local com SQLite
+
+SQLite e apenas fallback para testes rapidos sem `DATABASE_URL`:
+
+```bash
+python manage.py migrate
+python manage.py runserver
+```
 
 ## Rodar local com Docker
 
