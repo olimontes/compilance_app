@@ -7,6 +7,11 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+if importlib.util.find_spec("dotenv"):
+    from dotenv import load_dotenv
+
+    load_dotenv(BASE_DIR / ".env")
+
 
 def env(name: str, default: str = "") -> str:
     return os.environ.get(name, default)
