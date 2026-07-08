@@ -31,4 +31,3 @@ class DataChangeLogAdmin(admin.ModelAdmin):
     list_filter = ("action", "entity_type")
     search_fields = ("entity_type", "entity_uuid", "audit_event__event_type")
     readonly_fields = ("uuid", "created_at")
-

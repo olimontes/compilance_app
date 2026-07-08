@@ -11,4 +11,3 @@ router.register("memberships", MembershipViewSet, basename="membership")
 urlpatterns = [
     path("", include(router.urls)),
 ]
-

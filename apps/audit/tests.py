@@ -53,4 +53,3 @@ class AuditModelTests(TestCase):
 
         self.assertEqual(change.audit_event, event)
         self.assertEqual(change.changed_fields, ["name"])
-

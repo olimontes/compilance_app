@@ -103,4 +103,3 @@ class EvidenceModelTests(TestCase):
                 risk=self.risk,
                 control=self.control,
             )
-

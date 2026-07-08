@@ -10,4 +10,3 @@ router.register("data-change-logs", DataChangeLogViewSet, basename="data-change-
 urlpatterns = [
     path("", include(router.urls)),
 ]
-

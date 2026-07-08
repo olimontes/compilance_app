@@ -27,4 +27,3 @@ class MembershipAdmin(admin.ModelAdmin):
     list_filter = ("role", "status", "organization")
     search_fields = ("user__username", "user__email", "organization__name")
     readonly_fields = ("uuid", "created_at", "updated_at")
-

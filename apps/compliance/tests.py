@@ -79,4 +79,3 @@ class ComplianceModelTests(TestCase):
 
         with self.assertRaises(IntegrityError), transaction.atomic():
             RiskControl.objects.create(risk=risk, control=control)
-

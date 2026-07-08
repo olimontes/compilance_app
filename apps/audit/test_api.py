@@ -88,4 +88,3 @@ class AuditApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         log_uuids = {item["uuid"] for item in response.json()["results"]}
         self.assertIn(str(visible_log.uuid), log_uuids)
-

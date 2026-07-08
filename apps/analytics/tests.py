@@ -76,4 +76,3 @@ class AnalyticsModelTests(TestCase):
 
         self.assertEqual(check.result["invalid_rows"], 0)
         self.assertEqual(run.rows_written, 10)
-

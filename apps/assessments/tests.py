@@ -93,4 +93,3 @@ class AssessmentModelTests(TestCase):
                 question=self.question,
                 answered_by=self.user,
             )
-

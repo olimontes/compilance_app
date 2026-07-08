@@ -47,4 +47,3 @@ class IngestionRunAdmin(admin.ModelAdmin):
     list_filter = ("status", "source_name")
     search_fields = ("source_name", "error_message")
     readonly_fields = ("uuid", "created_at", "updated_at")
-

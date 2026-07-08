@@ -10,4 +10,3 @@ class TimestampedUUIDModel(models.Model):
 
     class Meta:
         abstract = True
-

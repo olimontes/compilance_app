@@ -51,4 +51,3 @@ class AiAssetModelTests(TestCase):
 
         with self.assertRaises(IntegrityError), transaction.atomic():
             AiTool.objects.create(organization=self.organization, name="Copilot")
-
