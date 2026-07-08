@@ -5,7 +5,7 @@ AI Governance API.
 
 ## Apps criados
 
-- `apps.accounts`: usuario customizado.
+- `apps.accounts`: usuario customizado, perfil e preferencias.
 - `apps.common`: mixin abstrato com `uuid`, `created_at` e `updated_at`.
 - `apps.organizations`: organizacoes, unidades e memberships.
 - `apps.ai_assets`: fornecedores, ferramentas e casos de uso de IA.
@@ -50,6 +50,8 @@ Carregar controles padrao para uma organizacao:
 ## Endpoints principais
 
 - `/api/organizations/`
+- `/api/user-profile/me/`
+- `/api/user-preferences/me/`
 - `/api/organization-units/`
 - `/api/memberships/`
 - `/api/ai-vendors/`
