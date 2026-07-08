@@ -33,6 +33,7 @@ versao da camada de dados da plataforma.
 - Blueprint gratuito do Render
 - Guia de Git Flow em `docs/GITFLOW.md`
 - Plano de execucao de dados em `docs/PLANO_DADOS.md`
+- Status da camada de dados em `docs/STATUS_CAMADA_DADOS.md`
 - README principal na raiz do repositorio
 
 ## O que ainda nao existe
@@ -146,4 +147,5 @@ python manage.py run_data_quality_checks
 python manage.py generate_metric_snapshots
 ```
 
-A documentacao detalhada fica em `docs/CAMADA_DADOS.md`.
+A documentacao detalhada fica em `docs/CAMADA_DADOS.md` e
+`docs/STATUS_CAMADA_DADOS.md`.

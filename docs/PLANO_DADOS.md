@@ -844,6 +844,7 @@ Checklist:
 ## Status atual da implementacao
 
 A primeira versao da camada de dados foi implementada em branch de feature.
+O resumo operacional da entrega esta em `docs/STATUS_CAMADA_DADOS.md`.
 
 Entregas concluidas:
 
