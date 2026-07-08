@@ -6,6 +6,7 @@ from .views import (
     IngestionRunViewSet,
     MetricDefinitionViewSet,
     MetricSnapshotViewSet,
+    metrics_overview,
 )
 
 router = DefaultRouter()
@@ -15,6 +16,6 @@ router.register("data-quality-checks", DataQualityCheckViewSet, basename="data-q
 router.register("ingestion-runs", IngestionRunViewSet, basename="ingestion-run")
 
 urlpatterns = [
+    path("metrics/overview/", metrics_overview, name="metrics-overview"),
     path("", include(router.urls)),
 ]
-

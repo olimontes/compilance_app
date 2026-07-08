@@ -3,6 +3,10 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.ai_assets.models import AiUseCase, RiskLevel
+from apps.assessments.models import Assessment, AssessmentFramework
+from apps.compliance.models import Control, Risk
+from apps.evidence.models import Evidence
 from apps.organizations.models import Membership, Organization
 
 from .models import DataQualityCheck, IngestionRun, MetricDefinition, MetricSnapshot
@@ -118,3 +122,63 @@ class AnalyticsApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_metrics_overview_only_counts_user_organizations(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        framework = AssessmentFramework.objects.create(
+            code="AIGOV",
+            name="AI Governance Maturity",
+            version="1.0",
+        )
+        AiUseCase.objects.create(
+            organization=self.organization,
+            name="Visible use case",
+            purpose="Visible purpose.",
+        )
+        AiUseCase.objects.create(
+            organization=hidden_org,
+            name="Hidden use case",
+            purpose="Hidden purpose.",
+        )
+        Risk.objects.create(
+            organization=self.organization,
+            title="Visible risk",
+            likelihood=3,
+            impact=4,
+            severity=RiskLevel.HIGH,
+        )
+        Risk.objects.create(
+            organization=hidden_org,
+            title="Hidden risk",
+            likelihood=3,
+            impact=4,
+            severity=RiskLevel.CRITICAL,
+        )
+        Control.objects.create(
+            organization=self.organization,
+            code="CTRL-001",
+            title="Visible control",
+        )
+        Evidence.objects.create(
+            organization=self.organization,
+            title="Visible evidence",
+        )
+        Assessment.objects.create(
+            organization=self.organization,
+            framework=framework,
+            created_by=self.user,
+            title="Visible assessment",
+            status=Assessment.Status.IN_PROGRESS,
+        )
+
+        response = self.client.get("/api/metrics/overview/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertEqual(payload["organizations"], 1)
+        self.assertEqual(payload["ai_use_cases"], 1)
+        self.assertEqual(payload["controls"], 1)
+        self.assertEqual(payload["evidence"], 1)
+        self.assertEqual(payload["risks_by_severity"][RiskLevel.HIGH], 1)
+        self.assertEqual(payload["risks_by_severity"][RiskLevel.CRITICAL], 0)
+        self.assertEqual(payload["assessments_by_status"][Assessment.Status.IN_PROGRESS], 1)

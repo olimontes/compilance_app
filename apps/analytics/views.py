@@ -1,5 +1,11 @@
-from rest_framework import viewsets
+from drf_spectacular.utils import extend_schema, inline_serializer
+from django.db.models import Count
+from rest_framework import decorators, response, serializers, viewsets
 
+from apps.ai_assets.models import AiUseCase, RiskLevel
+from apps.assessments.models import Assessment
+from apps.compliance.models import Control, Risk
+from apps.evidence.models import Evidence
 from apps.organizations.models import Membership, Organization
 
 from .models import DataQualityCheck, IngestionRun, MetricDefinition, MetricSnapshot
@@ -75,3 +81,49 @@ class IngestionRunViewSet(viewsets.ModelViewSet):
         if source_name:
             queryset = queryset.filter(source_name=source_name)
         return queryset
+
+
+def _choice_counts(queryset, field_name, choices):
+    counts = {value: 0 for value, _label in choices}
+    for item in queryset.values(field_name).annotate(count=Count("id")):
+        counts[item[field_name]] = item["count"]
+    return counts
+
+
+@extend_schema(
+    responses=inline_serializer(
+        name="MetricsOverviewResponse",
+        fields={
+            "organizations": serializers.IntegerField(),
+            "ai_use_cases": serializers.IntegerField(),
+            "controls": serializers.IntegerField(),
+            "evidence": serializers.IntegerField(),
+            "risks_by_severity": serializers.DictField(child=serializers.IntegerField()),
+            "risks_by_status": serializers.DictField(child=serializers.IntegerField()),
+            "assessments_by_status": serializers.DictField(child=serializers.IntegerField()),
+        },
+    )
+)
+@decorators.api_view(["GET"])
+def metrics_overview(request):
+    if request.user.is_superuser:
+        organization_ids = Organization.objects.values_list("id", flat=True)
+    else:
+        organization_ids = Membership.objects.filter(
+            user=request.user,
+            status=Membership.Status.ACTIVE,
+        ).values_list("organization_id", flat=True)
+
+    risks = Risk.objects.filter(organization_id__in=organization_ids)
+    assessments = Assessment.objects.filter(organization_id__in=organization_ids)
+
+    payload = {
+        "organizations": Organization.objects.filter(id__in=organization_ids).count(),
+        "ai_use_cases": AiUseCase.objects.filter(organization_id__in=organization_ids).count(),
+        "controls": Control.objects.filter(organization_id__in=organization_ids).count(),
+        "evidence": Evidence.objects.filter(organization_id__in=organization_ids).count(),
+        "risks_by_severity": _choice_counts(risks, "severity", RiskLevel.choices),
+        "risks_by_status": _choice_counts(risks, "status", Risk.Status.choices),
+        "assessments_by_status": _choice_counts(assessments, "status", Assessment.Status.choices),
+    }
+    return response.Response(payload)
