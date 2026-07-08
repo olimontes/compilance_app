@@ -92,8 +92,8 @@ O diferencial nao deve ser apenas cadastro ou questionario. O valor principal e:
 - [ ] Login/registro pensado para usuario final.
 - [ ] Convites de usuarios para organizacoes.
 - [ ] Interface para o questionario estruturado.
-- [ ] Enriquecimento narrativo do plano de mitigacao.
-- [ ] Relatorio executivo.
+- [x] Enriquecimento narrativo do plano de mitigacao em API.
+- [x] Relatorio executivo em JSON.
 - [ ] Dashboard de maturidade orientado ao usuario.
 - [ ] Reavaliacao periodica.
 - [ ] Geracao de documentos corporativos.
@@ -102,48 +102,52 @@ O diferencial nao deve ser apenas cadastro ou questionario. O valor principal e:
 
 ## Passo concluido mais recente
 
-[x] Criar motor inicial de riscos e plano de mitigacao.
+[x] Enriquecer plano de mitigacao com indicadores, evidencias esperadas e
+relatorio executivo.
 
 Entregue:
 
-- matriz simples de severidade por `likelihood * impact`;
-- regras iniciais que convertem maturidade baixa em `Risk`;
-- vinculo automatico entre riscos e controles seedados;
-- geracao de `ActionPlan` e `ActionItem`;
-- endpoint de geracao de plano de mitigacao por assessment submetido;
-- geracao idempotente para evitar duplicidade no mesmo assessment;
-- testes de geracao, idempotencia e bloqueio para assessment nao submetido.
+- campos narrativos padronizados para plano de mitigacao: objetivo,
+  justificativa, beneficios esperados, complexidade, prazo sugerido, areas
+  impactadas, indicadores de sucesso e evidencias esperadas;
+- consequencias juridicas, financeiras, operacionais e reputacionais por tipo
+  de risco;
+- descricoes persistidas em `ActionPlan` e `ActionItem` com indicadores e
+  evidencias;
+- endpoint `GET /api/assessments/{uuid}/executive-report/`;
+- relatorio executivo em JSON com resumo, riscos, consequencias, plano e
+  proximos passos;
+- testes de conteudo minimo do relatorio e isolamento multi-tenant;
+- documentacao do formato em `docs/CAMADA_DADOS.md`.
 
 ## Proximo passo recomendado
 
-[>] Enriquecer plano de mitigacao com indicadores, evidencias esperadas e relatorio executivo.
+[>] Criar primeira interface web TypeScript para o usuario interagir com o
+fluxo de assessment e relatorio.
 
 Motivo:
 
-- o assessment ja gera score, recomendacoes, riscos e plano inicial;
-- o diferencial descrito na ideia do produto depende de consequencias
-  detalhadas, indicadores de sucesso e evidencias esperadas;
-- o relatorio executivo e a proxima forma clara de entregar valor ao usuario.
+- o backend ja permite criar assessment, responder questionario, submeter,
+  gerar plano de mitigacao e consultar relatorio executivo;
+- ainda nao existe uma tela propria para usuario final;
+- uma interface simples vai validar o fluxo real do produto antes de ampliar
+  dashboards e documentos.
 
 Escopo recomendado para o proximo PR:
 
-- [ ] Padronizar campos narrativos do plano: objetivo, justificativa,
-  beneficios esperados, complexidade, prazo sugerido, areas impactadas,
-  indicadores de sucesso e evidencias esperadas.
-- [ ] Definir consequencias juridicas, financeiras, operacionais e
-  reputacionais por tipo de risco.
-- [ ] Criar servico de resumo executivo por assessment.
-- [ ] Expor endpoint de relatorio executivo em JSON.
-- [ ] Criar testes para conteudo minimo do relatorio e isolamento multi-tenant.
-- [ ] Documentar o formato do relatorio em `docs/CAMADA_DADOS.md`.
+- [ ] Escolher e criar a estrutura frontend (`frontend/`) em TypeScript.
+- [ ] Configurar cliente HTTP para consumir a API Django.
+- [ ] Criar tela inicial autenticada ou tela dev de selecao de assessment.
+- [ ] Criar visualizacao do questionario por dimensao.
+- [ ] Criar tela de resumo/relatorio executivo.
+- [ ] Documentar como rodar frontend e backend localmente.
 
 Entrega minima aceitavel:
 
-- selecionar um assessment submetido;
-- retornar resumo executivo;
-- listar riscos identificados;
-- explicar consequencias por categoria;
-- listar acoes de mitigacao com indicadores e evidencias esperadas.
+- abrir uma URL local do frontend;
+- visualizar assessments disponiveis para o usuario autenticado ou contexto dev;
+- abrir questionario/resumo de um assessment;
+- visualizar o relatorio executivo gerado pela API.
 
 ## Roadmap de produto
 
@@ -187,20 +191,20 @@ Status: backend do fluxo guiado pronto; frontend pendente.
 - [x] Derivar `Risk.severity` automaticamente por `likelihood` e `impact`.
 - [x] Criar motor de regras simples para gerar riscos a partir de respostas.
 - [x] Gerar plano de mitigacao inicial por risco.
-- [>] Criar indicadores de sucesso e evidencias esperadas por acao.
+- [x] Criar indicadores de sucesso e evidencias esperadas por acao.
 
-Status: motor inicial pronto; enriquecimento do plano e relatorio pendentes.
+Status: motor inicial e plano enriquecido prontos; frontend pendente.
 
 ### Fase 4 - Relatorio e dashboard
 
 - [x] Criar modelos e endpoints basicos de analytics.
 - [x] Criar `/api/metrics/overview/`.
-- [>] Criar resumo executivo da avaliacao.
+- [x] Criar resumo executivo da avaliacao.
 - [ ] Criar endpoint de dashboard de maturidade.
 - [ ] Criar serie historica de reavaliacoes.
 - [ ] Expor riscos por severidade, status, area e ferramenta.
 
-Status: base pronta; visao executiva pendente.
+Status: relatorio executivo pronto; dashboard orientado ao usuario pendente.
 
 ### Fase 5 - Auditoria, evidencias e compliance operacional
 
@@ -216,7 +220,7 @@ Status: MVP tecnico pronto; governanca operacional pendente.
 
 ### Fase 6 - Frontend
 
-- [ ] Escolher Vite/React ou Next.js.
+- [>] Escolher Vite/React ou Next.js.
 - [ ] Criar estrutura `frontend/`.
 - [ ] Criar login.
 - [ ] Criar onboarding de organizacao.
@@ -242,9 +246,9 @@ Status: futuro; deve vir depois do MVP de avaliacao.
 
 ## Backlog tecnico imediato
 
-- [>] Commitar ajustes locais de PostgreSQL e `.env` loading.
+- [x] Commitar ajustes locais de PostgreSQL e `.env` loading.
 - [x] Atualizar documentacao de setup local para PostgreSQL em `README.md`.
-- [x] Atualizar `STATUS_CAMADA_DADOS.md` para refletir merge em `develop` e 72
+- [x] Atualizar `STATUS_CAMADA_DADOS.md` para refletir merge em `develop` e 83
   testes.
 - [ ] Criar PR de `develop` para `main` quando a camada de dados estiver pronta
   para producao.

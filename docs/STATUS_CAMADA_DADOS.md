@@ -22,7 +22,7 @@ python manage.py test
 Resultado:
 
 ```text
-79 tests OK
+83 tests OK
 ```
 
 ## Decisoes importantes
@@ -174,10 +174,15 @@ Endpoints:
 - `/api/action-plans/`
 - `/api/action-items/`
 - `/api/assessments/{uuid}/generate-mitigation-plan/`
+- `/api/assessments/{uuid}/executive-report/`
 
 Servico criado:
 
-- motor inicial de riscos e plano de mitigacao a partir de assessment submetido.
+- motor inicial de riscos e plano de mitigacao a partir de assessment submetido;
+- enriquecimento do plano com objetivo, justificativa, beneficios,
+  complexidade, indicadores e evidencias esperadas;
+- relatorio executivo com consequencias juridicas, financeiras, operacionais e
+  reputacionais.
 
 Command criado:
 
@@ -271,7 +276,7 @@ Foram criados testes para:
 Validacao atual:
 
 ```text
-79 tests OK
+83 tests OK
 ```
 
 ## Ordem sugerida para rodar local
@@ -303,10 +308,7 @@ Observacao: `seed_controls` exige que a organizacao ja exista.
 
 ### Melhorias tecnicas pos-MVP
 
-- Calcular `Risk.severity` automaticamente a partir de `likelihood` e `impact`.
-- Enriquecer o plano de mitigacao com indicadores de sucesso, evidencias
-  esperadas, beneficios e complexidade.
-- Criar relatorio executivo da avaliacao.
+- Criar endpoint de dashboard de maturidade orientado ao usuario.
 - Auditar updates relevantes, principalmente mudancas de status.
 - Definir politica de retencao para auditoria e evidencias.
 - Implementar upload real de arquivos em storage externo.

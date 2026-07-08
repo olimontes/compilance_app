@@ -2,7 +2,10 @@ from rest_framework import decorators, response, viewsets
 
 from apps.audit.services import log_create_event
 from apps.common.tenancy import OrganizationScopedQuerySetMixin
-from apps.compliance.services import generate_mitigation_plan_from_assessment
+from apps.compliance.services import (
+    build_executive_report_from_assessment,
+    generate_mitigation_plan_from_assessment,
+)
 
 from .models import (
     Assessment,
@@ -89,6 +92,11 @@ class AssessmentViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
     def generate_mitigation_plan(self, request, uuid=None):
         assessment = self.get_object()
         return response.Response(generate_mitigation_plan_from_assessment(assessment, request.user))
+
+    @decorators.action(detail=True, methods=["get"], url_path="executive-report")
+    def executive_report(self, request, uuid=None):
+        assessment = self.get_object()
+        return response.Response(build_executive_report_from_assessment(assessment))
 
 
 class AssessmentAnswerViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):

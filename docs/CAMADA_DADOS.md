@@ -80,6 +80,7 @@ Gerar snapshots de metricas para dashboards:
 - `/api/assessments/{uuid}/submit/`
 - `/api/assessments/{uuid}/summary/`
 - `/api/assessments/{uuid}/generate-mitigation-plan/`
+- `/api/assessments/{uuid}/executive-report/`
 - `/api/assessment-answers/`
 - `/api/maturity-scores/`
 - `/api/recommendations/`
@@ -116,6 +117,102 @@ Gerar snapshots de metricas para dashboards:
   com controles, planos de acao e itens de acao para dimensoes abaixo de 80%.
 - A severidade de riscos gerados e derivada de `likelihood * impact`.
 - A geracao de mitigacao e idempotente para o mesmo assessment.
+- O plano de mitigacao gerado inclui objetivo, justificativa, beneficios
+  esperados, complexidade, areas impactadas, indicadores de sucesso e
+  evidencias esperadas.
+- O relatorio executivo exige assessment submetido e retorna resumo, riscos
+  identificados, consequencias juridicas, financeiras, operacionais e
+  reputacionais, plano de mitigacao e proximos passos recomendados.
+
+## Formato do relatorio executivo
+
+Endpoint:
+
+```text
+GET /api/assessments/{uuid}/executive-report/
+```
+
+Estrutura principal:
+
+```json
+{
+  "assessment": {
+    "uuid": "...",
+    "title": "...",
+    "status": "submitted",
+    "submitted_at": "..."
+  },
+  "organization": {
+    "uuid": "...",
+    "name": "..."
+  },
+  "framework": {
+    "code": "AIGOV",
+    "version": "1.0",
+    "name": "AI Governance Maturity"
+  },
+  "generated_at": "...",
+  "executive_summary": {
+    "headline": "...",
+    "overall_score": {
+      "score": "8.00",
+      "max_score": "23.00",
+      "percentage": "34.78",
+      "computed_at": "..."
+    },
+    "maturity_level": "low",
+    "identified_risk_count": 2,
+    "priority_risk_count": 2,
+    "recommended_focus": []
+  },
+  "identified_risks": [
+    {
+      "uuid": "...",
+      "title": "...",
+      "dimension": {
+        "uuid": "...",
+        "code": "data-sharing",
+        "name": "Data sharing"
+      },
+      "maturity_percentage": "0.00",
+      "likelihood": 5,
+      "impact": 5,
+      "severity": "critical",
+      "status": "open",
+      "controls": [],
+      "consequences": {
+        "legal": "...",
+        "financial": "...",
+        "operational": "...",
+        "reputational": "..."
+      }
+    }
+  ],
+  "mitigation_plan": [
+    {
+      "uuid": "...",
+      "title": "...",
+      "dimension": {
+        "uuid": "...",
+        "code": "data-sharing",
+        "name": "Data sharing"
+      },
+      "status": "open",
+      "due_date": "2026-08-07",
+      "suggested_deadline": "2026-08-07",
+      "objective": "...",
+      "justification": "...",
+      "expected_benefits": [],
+      "complexity": "high",
+      "impacted_areas": [],
+      "success_indicators": [],
+      "expected_evidence": [],
+      "items": []
+    }
+  ],
+  "recommended_next_steps": []
+}
+```
 
 ## Validacao atual
 
