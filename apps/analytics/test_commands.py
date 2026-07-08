@@ -1,14 +1,17 @@
 from io import StringIO
 
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
+from django.utils import timezone
 
-from apps.ai_assets.models import RiskLevel
-from apps.compliance.models import Risk
+from apps.ai_assets.models import AiUseCase, RiskLevel
+from apps.assessments.models import Assessment, AssessmentFramework
+from apps.compliance.models import Control, Risk
 from apps.evidence.models import Evidence
 from apps.organizations.models import Organization
 
-from .models import DataQualityCheck
+from .models import DataQualityCheck, MetricDefinition, MetricSnapshot
 
 
 class DataQualityCommandTests(TestCase):
@@ -50,3 +53,71 @@ class DataQualityCommandTests(TestCase):
         self.assertEqual(evidence_check.result["invalid_rows"], 1)
         self.assertEqual(risk_check.status, DataQualityCheck.Status.FAILED)
         self.assertEqual(risk_check.result["invalid_rows"], 2)
+
+
+class MetricSnapshotCommandTests(TestCase):
+    def setUp(self):
+        self.organization = Organization.objects.create(name="Acme Corp", slug="acme-corp")
+        self.framework = AssessmentFramework.objects.create(
+            code="AIGOV",
+            name="AI Governance",
+            version="1.0",
+        )
+
+    def test_generate_metric_snapshots_records_counts(self):
+        user = get_user_model().objects.create_user(
+            username="alice",
+            email="alice@example.com",
+            password="password-123",
+        )
+        AiUseCase.objects.create(
+            organization=self.organization,
+            name="Contract review",
+            purpose="Support contract analysis.",
+        )
+        Control.objects.create(
+            organization=self.organization,
+            code="CTRL-001",
+            title="Access review",
+        )
+        Evidence.objects.create(
+            organization=self.organization,
+            title="Access policy",
+            external_url="https://example.com/access-policy",
+        )
+        Risk.objects.create(
+            organization=self.organization,
+            title="High risk",
+            likelihood=3,
+            impact=4,
+            severity=RiskLevel.HIGH,
+        )
+        Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=user,
+            title="Assessment",
+            status=Assessment.Status.IN_PROGRESS,
+        )
+
+        output = StringIO()
+        call_command("generate_metric_snapshots", stdout=output)
+
+        self.assertIn("Generated 15 metric snapshots", output.getvalue())
+        self.assertEqual(MetricDefinition.objects.count(), 15)
+        self.assertEqual(MetricSnapshot.objects.count(), 15)
+        high_risks = MetricSnapshot.objects.get(metric_definition__key="risks.high.count")
+        in_progress_assessments = MetricSnapshot.objects.get(
+            metric_definition__key="assessments.in_progress.count"
+        )
+        self.assertEqual(high_risks.metric_value, 1)
+        self.assertEqual(in_progress_assessments.metric_value, 1)
+
+    def test_generate_metric_snapshots_is_idempotent_for_same_period(self):
+        now = timezone.now()
+        from apps.analytics.services import generate_metric_snapshots
+
+        generate_metric_snapshots(computed_at=now)
+        generate_metric_snapshots(computed_at=now.replace(hour=23, minute=30))
+
+        self.assertEqual(MetricSnapshot.objects.count(), 15)

@@ -53,6 +53,12 @@ Executar checks de qualidade de dados:
 .\.venv\Scripts\python manage.py run_data_quality_checks
 ```
 
+Gerar snapshots de metricas para dashboards:
+
+```powershell
+.\.venv\Scripts\python manage.py generate_metric_snapshots
+```
+
 ## Endpoints principais
 
 - `/api/organizations/`
