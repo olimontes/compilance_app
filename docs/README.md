@@ -2,13 +2,13 @@
 
 Backend Django para uma plataforma SaaS de governanca e maturidade no uso corporativo de IA.
 
-Este repositorio esta propositalmente como esqueleto de deploy. Ele ainda nao possui modelos,
-migrations ou endpoints de dominio da plataforma.
+Este repositorio comecou como esqueleto de deploy e agora possui a primeira
+versao da camada de dados da plataforma.
 
 ## Stack
 
 - Backend em Django + Django REST Framework
-- Frontend planejado em TypeScript
+- Frontend em TypeScript, React e Vite
 - PostgreSQL em producao
 - Redis + Celery para jobs assincronos
 - Gunicorn em producao
@@ -21,24 +21,52 @@ migrations ou endpoints de dominio da plataforma.
 
 - Configuracao Django pronta para local/producao
 - Health check com teste de conexao ao banco
+- Apps de dominio para organizacoes, contas, inventario de IA, avaliacoes,
+  compliance, evidencias, auditoria e analytics
+- Models, migrations, admin Django e endpoints REST da camada de dados
+- Testes de isolamento multi-tenant por organizacao
+- Eventos de auditoria para criacoes principais
+- Commands para seeds, qualidade de dados e snapshots de metricas
 - Sentry opcional para capturar erros em producao
 - Celery configurado para quando os jobs forem adicionados
 - Docker Compose com PostgreSQL e Redis
 - Blueprint gratuito do Render
+- Primeira SPA em `frontend/` para assessment, questionario, resumo e relatorio executivo
 - Guia de Git Flow em `docs/GITFLOW.md`
 - Plano de execucao de dados em `docs/PLANO_DADOS.md`
+- Status da camada de dados em `docs/STATUS_CAMADA_DADOS.md`
+- Controle de passos do projeto em `docs/PASSOS_PROJETO.md`
 - README principal na raiz do repositorio
 
 ## O que ainda nao existe
 
-- Frontend TypeScript
-- Tabelas de negocio
-- Apps de dominio
-- Endpoints da plataforma
-- Motor de regras
+- Login/registro pensado para usuario final
+- Onboarding guiado de organizacao
+- Dashboard de maturidade completo
 - Integracao com IA
+- Jobs Celery em producao gratuita
+- Upload real de arquivos de evidencia em storage externo
 
-## Rodar local com SQLite
+## Rodar local com PostgreSQL
+
+Suba PostgreSQL e Redis:
+
+```bash
+docker compose up -d db redis
+```
+
+Crie um `.env` local:
+
+```text
+DJANGO_ENV=local
+DJANGO_DEBUG=true
+DJANGO_SECRET_KEY=unsafe-local-dev-key-change-me
+DATABASE_URL=postgres://governance:governance@localhost:5433/governance
+POSTGRES_PORT=5433
+REDIS_URL=redis://localhost:6379/0
+```
+
+Use `5432` em `POSTGRES_PORT` e `DATABASE_URL` se essa porta estiver livre.
 
 ```bash
 python -m venv .venv
@@ -46,8 +74,12 @@ python -m venv .venv
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser
+python manage.py seed_assessment_frameworks
 python manage.py runserver
 ```
+
+SQLite segue disponivel apenas como fallback local quando `DATABASE_URL` nao
+estiver definida.
 
 ## Rodar local com Docker
 
@@ -60,6 +92,15 @@ Depois acesse:
 - API: `http://localhost:8000/api/health/`
 - Admin: `http://localhost:8000/admin/`
 - Docs: `http://localhost:8000/api/docs/`
+- Frontend: `http://127.0.0.1:5173`
+
+Para rodar a primeira SPA local:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ## Deploy
 
@@ -130,12 +171,18 @@ SENTRY_DSN=<dsn-do-projeto-sentry>
 
 ## Como comecar as tabelas depois
 
-Quando for modelar o dominio:
+Para trabalhar com a camada de dados:
 
 ```bash
-python manage.py startapp organizations apps/organizations
-python manage.py makemigrations
 python manage.py migrate
+python manage.py seed_assessment_frameworks
+python manage.py seed_controls --organization-slug=<slug-da-organizacao>
+python manage.py run_data_quality_checks
+python manage.py generate_metric_snapshots
 ```
 
-Depois registre o app em `INSTALLED_APPS` e exponha as rotas em `config/urls.py`.
+A documentacao detalhada fica em `docs/CAMADA_DADOS.md` e
+`docs/STATUS_CAMADA_DADOS.md`.
+
+Para acompanhar o que ja foi feito e os proximos passos do produto, use
+`docs/PASSOS_PROJETO.md`.

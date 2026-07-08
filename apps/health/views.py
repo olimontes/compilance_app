@@ -1,8 +1,22 @@
 from django.conf import settings
 from django.db import connection
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers
 from rest_framework import decorators, permissions, response, status
 
 
+@extend_schema(
+    responses=inline_serializer(
+        name="HealthcheckResponse",
+        fields={
+            "status": serializers.CharField(),
+            "environment": serializers.CharField(),
+            "debug": serializers.BooleanField(),
+            "database": serializers.CharField(),
+            "database_error": serializers.CharField(required=False),
+        },
+    )
+)
 @decorators.api_view(["GET"])
 @decorators.permission_classes([permissions.AllowAny])
 def healthcheck(request):
@@ -32,6 +46,7 @@ def healthcheck(request):
     )
 
 
+@extend_schema(exclude=True)
 @decorators.api_view(["POST"])
 @decorators.permission_classes([permissions.IsAdminUser])
 def error_probe(request):

@@ -7,6 +7,11 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+if importlib.util.find_spec("dotenv"):
+    from dotenv import load_dotenv
+
+    load_dotenv(BASE_DIR / ".env")
+
 
 def env(name: str, default: str = "") -> str:
     return os.environ.get(name, default)
@@ -52,7 +57,16 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "drf_spectacular",
+    "apps.common",
+    "apps.accounts",
     "apps.health",
+    "apps.organizations",
+    "apps.ai_assets",
+    "apps.assessments",
+    "apps.compliance",
+    "apps.evidence",
+    "apps.audit",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [
@@ -147,6 +161,7 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
