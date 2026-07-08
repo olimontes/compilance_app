@@ -726,11 +726,11 @@ Entregaveis:
 
 Checklist:
 
-- [ ] Decidir user model.
-- [ ] Criar `apps/common` ou equivalente.
-- [ ] Criar documento ERD inicial.
-- [ ] Definir padrao de UUID nas APIs.
-- [ ] Definir padrao de auditoria.
+- [x] Decidir user model.
+- [x] Criar `apps/common` ou equivalente.
+- [x] Criar documento ERD inicial.
+- [x] Definir padrao de UUID nas APIs.
+- [x] Definir padrao de auditoria.
 
 ### Fase 1 - Multi-tenancy e identidade
 
@@ -743,12 +743,12 @@ Entregaveis:
 
 Checklist:
 
-- [ ] `Organization`
-- [ ] `OrganizationUnit`
-- [ ] `Membership`
-- [ ] `UserProfile`
-- [ ] Permissoes por organizacao
-- [ ] Testes de isolamento multi-tenant
+- [x] `Organization`
+- [x] `OrganizationUnit`
+- [x] `Membership`
+- [x] `UserProfile`
+- [x] Permissoes por organizacao
+- [x] Testes de isolamento multi-tenant
 
 ### Fase 2 - Inventario de IA
 
@@ -761,12 +761,12 @@ Entregaveis:
 
 Checklist:
 
-- [ ] `AiVendor`
-- [ ] `AiTool`
-- [ ] `AiModel`
-- [ ] `AiUseCase`
-- [ ] `DataSource`
-- [ ] Filtros por organizacao/status/risco
+- [x] `AiVendor`
+- [x] `AiTool`
+- [x] `AiModel`
+- [x] `AiUseCase`
+- [x] `DataSource`
+- [x] Filtros por organizacao/status/risco
 
 ### Fase 3 - Avaliacoes
 
@@ -780,13 +780,13 @@ Entregaveis:
 
 Checklist:
 
-- [ ] `AssessmentFramework`
-- [ ] `AssessmentDimension`
-- [ ] `AssessmentQuestion`
-- [ ] `Assessment`
-- [ ] `AssessmentAnswer`
-- [ ] `MaturityScore`
-- [ ] Seed inicial de framework
+- [x] `AssessmentFramework`
+- [x] `AssessmentDimension`
+- [x] `AssessmentQuestion`
+- [x] `Assessment`
+- [x] `AssessmentAnswer`
+- [x] `MaturityScore`
+- [x] Seed inicial de framework
 
 ### Fase 4 - Riscos, controles e evidencias
 
@@ -799,13 +799,13 @@ Entregaveis:
 
 Checklist:
 
-- [ ] `Control`
-- [ ] `Risk`
-- [ ] `RiskAssessment`
-- [ ] `Policy`
-- [ ] `ActionPlan`
-- [ ] `ActionItem`
-- [ ] `Evidence`
+- [x] `Control`
+- [x] `Risk`
+- [x] `RiskAssessment`
+- [x] `Policy`
+- [x] `ActionPlan`
+- [x] `ActionItem`
+- [x] `Evidence`
 
 ### Fase 5 - Auditoria e qualidade
 
@@ -818,11 +818,11 @@ Entregaveis:
 
 Checklist:
 
-- [ ] `AuditEvent`
-- [ ] Eventos principais de dominio
-- [ ] `DataQualityCheck`
-- [ ] `IngestionRun`
-- [ ] Testes para nao vazar dados entre organizacoes
+- [x] `AuditEvent`
+- [x] Eventos principais de dominio
+- [x] `DataQualityCheck`
+- [x] `IngestionRun`
+- [x] Testes para nao vazar dados entre organizacoes
 
 ### Fase 6 - Analytics e dashboards
 
@@ -835,11 +835,36 @@ Entregaveis:
 
 Checklist:
 
-- [ ] `MetricDefinition`
-- [ ] `MetricSnapshot`
-- [ ] Endpoint `/api/metrics/overview/`
-- [ ] Metricas por organizacao
-- [ ] Metricas por periodo
+- [x] `MetricDefinition`
+- [x] `MetricSnapshot`
+- [x] Endpoint `/api/metrics/overview/`
+- [x] Metricas por organizacao
+- [x] Metricas por periodo
+
+## Status atual da implementacao
+
+A primeira versao da camada de dados foi implementada em branch de feature.
+
+Entregas concluidas:
+
+- apps de dominio criados e registrados em `INSTALLED_APPS`;
+- models, migrations, admin e endpoints REST;
+- isolamento multi-tenant por `Membership` ativo;
+- eventos de auditoria para criacoes principais;
+- seeds de framework de assessment e controles base;
+- checks executaveis de qualidade de dados;
+- snapshots de metricas recriaveis para dashboard;
+- documentacao operacional em `docs/CAMADA_DADOS.md`;
+- suite de testes Django passando.
+
+Pendencias para evolucao apos o MVP:
+
+- calcular `severity` automaticamente a partir de `likelihood` e `impact`;
+- recalcular `MaturityScore` automaticamente a partir das respostas;
+- auditar tambem updates relevantes, como mudancas de status;
+- definir politica formal de retencao de evidencias e auditoria;
+- implementar upload real de arquivos em storage externo;
+- criar imports manuais CSV/XLSX quando houver formato definido.
 
 ## Definicao de pronto
 
