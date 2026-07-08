@@ -5,7 +5,7 @@ from apps.common.tenancy import OrganizationMembershipValidatorMixin, user_has_a
 from apps.compliance.models import Control, Risk
 from apps.organizations.models import Organization
 
-from .models import Evidence, EvidenceLink
+from .models import Evidence, EvidenceLink, EvidenceReview
 
 
 class EvidenceSerializer(OrganizationMembershipValidatorMixin, serializers.ModelSerializer):
@@ -87,3 +87,28 @@ class EvidenceLinkSerializer(serializers.ModelSerializer):
         if isinstance(target, AssessmentAnswer):
             return target.assessment.organization_id == evidence.organization_id
         return target.organization_id == evidence.organization_id
+
+
+class EvidenceReviewSerializer(serializers.ModelSerializer):
+    evidence = serializers.SlugRelatedField(slug_field="uuid", queryset=Evidence.objects.all())
+    reviewed_by = serializers.SlugRelatedField(slug_field="uuid", read_only=True)
+
+    class Meta:
+        model = EvidenceReview
+        fields = (
+            "uuid",
+            "evidence",
+            "reviewed_by",
+            "status",
+            "comments",
+            "reviewed_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("uuid", "reviewed_by", "created_at", "updated_at")
+
+    def validate_evidence(self, evidence):
+        user = self.context["request"].user
+        if user_has_active_membership(user, evidence.organization):
+            return evidence
+        raise serializers.ValidationError("You are not a member of this evidence organization.")

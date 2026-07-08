@@ -7,7 +7,7 @@ from apps.audit.models import AuditEvent
 from apps.compliance.models import Control, Risk
 from apps.organizations.models import Membership, Organization
 
-from .models import Evidence, EvidenceLink
+from .models import Evidence, EvidenceLink, EvidenceReview
 
 
 class EvidenceApiTests(APITestCase):
@@ -72,6 +72,28 @@ class EvidenceApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(EvidenceLink.objects.filter(evidence=evidence, risk=self.risk).exists())
 
+    def test_create_evidence_review(self):
+        evidence = Evidence.objects.create(
+            organization=self.organization,
+            uploaded_by=self.user,
+            title="Access policy",
+        )
+
+        response = self.client.post(
+            "/api/evidence-reviews/",
+            {
+                "evidence": str(evidence.uuid),
+                "status": EvidenceReview.Status.APPROVED,
+                "comments": "Evidence is valid for this control.",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        review = EvidenceReview.objects.get(evidence=evidence)
+        self.assertEqual(review.reviewed_by, self.user)
+        self.assertTrue(AuditEvent.objects.filter(event_type="evidence_review.created").exists())
+
     def test_evidence_link_rejects_multiple_targets(self):
         evidence = Evidence.objects.create(
             organization=self.organization,
@@ -126,6 +148,21 @@ class EvidenceApiTests(APITestCase):
             {
                 "evidence": str(evidence.uuid),
                 "risk": str(hidden_risk.uuid),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_evidence_review_rejects_other_organization(self):
+        hidden_org = Organization.objects.create(name="Hidden Corp", slug="hidden-corp")
+        hidden_evidence = Evidence.objects.create(organization=hidden_org, title="Hidden evidence")
+
+        response = self.client.post(
+            "/api/evidence-reviews/",
+            {
+                "evidence": str(hidden_evidence.uuid),
+                "status": EvidenceReview.Status.APPROVED,
             },
             format="json",
         )

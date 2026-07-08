@@ -112,3 +112,32 @@ class EvidenceLink(models.Model):
     def __str__(self) -> str:
         return f"{self.evidence} link"
 
+
+class EvidenceReview(TimestampedUUIDModel):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        NEEDS_CHANGES = "needs_changes", "Needs changes"
+
+    evidence = models.ForeignKey(
+        Evidence,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="evidence_reviews",
+        blank=True,
+        null=True,
+    )
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.PENDING)
+    comments = models.TextField(blank=True)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["evidence__title", "-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.evidence} review: {self.status}"
