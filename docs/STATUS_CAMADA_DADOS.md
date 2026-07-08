@@ -5,13 +5,9 @@ do Compliance App / AI Governance API e quais sao os proximos passos apos o MVP.
 
 ## Situacao atual
 
-A camada de dados inicial esta implementada na branch:
+A camada de dados inicial foi mergeada na branch `develop`.
 
-```text
-feature/core-data-models
-```
-
-O PR aberto para integrar na `develop` e:
+PR de origem:
 
 ```text
 https://github.com/olimontes/compilance_app/pull/1
@@ -20,13 +16,13 @@ https://github.com/olimontes/compilance_app/pull/1
 Validacao local mais recente:
 
 ```powershell
-.\.venv\Scripts\python manage.py test
+python manage.py test
 ```
 
 Resultado:
 
 ```text
-69 tests OK
+79 tests OK
 ```
 
 ## Decisoes importantes
@@ -177,6 +173,11 @@ Endpoints:
 - `/api/policies/`
 - `/api/action-plans/`
 - `/api/action-items/`
+- `/api/assessments/{uuid}/generate-mitigation-plan/`
+
+Servico criado:
+
+- motor inicial de riscos e plano de mitigacao a partir de assessment submetido.
 
 Command criado:
 
@@ -270,7 +271,7 @@ Foram criados testes para:
 Validacao atual:
 
 ```text
-69 tests OK
+79 tests OK
 ```
 
 ## Ordem sugerida para rodar local
@@ -293,16 +294,19 @@ Observacao: `seed_controls` exige que a organizacao ja exista.
 
 ### Processo
 
-1. Revisar o PR com o time.
-2. Aprovar o PR no GitHub.
-3. Mergear `feature/core-data-models` em `develop`.
-4. Rodar `migrate` no ambiente compartilhado.
-5. Rodar os commands de seed e metricas quando houver organizacao criada.
+1. Criar PR de `develop` para `main` quando a camada de dados estiver pronta
+   para producao.
+2. Rodar `migrate` no ambiente compartilhado.
+3. Criar organizacao inicial.
+4. Rodar os commands de seed e metricas quando houver organizacao criada.
+5. Seguir o controle de produto em `docs/PASSOS_PROJETO.md`.
 
 ### Melhorias tecnicas pos-MVP
 
 - Calcular `Risk.severity` automaticamente a partir de `likelihood` e `impact`.
-- Recalcular `MaturityScore` automaticamente a partir de `AssessmentAnswer`.
+- Enriquecer o plano de mitigacao com indicadores de sucesso, evidencias
+  esperadas, beneficios e complexidade.
+- Criar relatorio executivo da avaliacao.
 - Auditar updates relevantes, principalmente mudancas de status.
 - Definir politica de retencao para auditoria e evidencias.
 - Implementar upload real de arquivos em storage externo.

@@ -1,7 +1,8 @@
-from rest_framework import viewsets
+from rest_framework import decorators, response, viewsets
 
 from apps.audit.services import log_create_event
 from apps.common.tenancy import OrganizationScopedQuerySetMixin
+from apps.compliance.services import generate_mitigation_plan_from_assessment
 
 from .models import (
     Assessment,
@@ -21,6 +22,7 @@ from .serializers import (
     MaturityScoreSerializer,
     RecommendationSerializer,
 )
+from .services import build_assessment_summary, build_questionnaire, submit_assessment
 
 
 class AssessmentFrameworkViewSet(viewsets.ModelViewSet):
@@ -67,6 +69,26 @@ class AssessmentViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):
             instance=assessment,
             event_type="assessment.started",
         )
+
+    @decorators.action(detail=True, methods=["get"])
+    def questionnaire(self, request, uuid=None):
+        assessment = self.get_object()
+        return response.Response(build_questionnaire(assessment.framework))
+
+    @decorators.action(detail=True, methods=["post"])
+    def submit(self, request, uuid=None):
+        assessment = self.get_object()
+        return response.Response(submit_assessment(assessment, request.user))
+
+    @decorators.action(detail=True, methods=["get"])
+    def summary(self, request, uuid=None):
+        assessment = self.get_object()
+        return response.Response(build_assessment_summary(assessment))
+
+    @decorators.action(detail=True, methods=["post"], url_path="generate-mitigation-plan")
+    def generate_mitigation_plan(self, request, uuid=None):
+        assessment = self.get_object()
+        return response.Response(generate_mitigation_plan_from_assessment(assessment, request.user))
 
 
 class AssessmentAnswerViewSet(OrganizationScopedQuerySetMixin, viewsets.ModelViewSet):

@@ -31,6 +31,24 @@ CONTROLS = [
         "domain": "security",
     },
     {
+        "code": "HUM-001",
+        "title": "Mandatory human review",
+        "description": "Require human validation before using AI outputs in relevant decisions or critical processes.",
+        "domain": "human_review",
+    },
+    {
+        "code": "TRN-001",
+        "title": "AI governance training",
+        "description": "Train users on acceptable, secure, and responsible AI usage.",
+        "domain": "governance",
+    },
+    {
+        "code": "OPS-001",
+        "title": "AI continuity fallback",
+        "description": "Define fallback procedures for critical processes that depend on AI tools.",
+        "domain": "operations",
+    },
+    {
         "code": "EVD-001",
         "title": "Evidence retention",
         "description": "Keep evidence links or documents for relevant risks, controls, and assessment answers.",

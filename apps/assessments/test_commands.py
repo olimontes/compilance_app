@@ -15,6 +15,6 @@ class SeedAssessmentFrameworksCommandTests(TestCase):
 
         framework = AssessmentFramework.objects.get(code="AIGOV", version="1.0")
         self.assertEqual(framework.status, AssessmentFramework.Status.PUBLISHED)
-        self.assertEqual(AssessmentDimension.objects.filter(framework=framework).count(), 3)
-        self.assertEqual(AssessmentQuestion.objects.filter(framework=framework).count(), 6)
+        self.assertEqual(AssessmentDimension.objects.filter(framework=framework).count(), 9)
+        self.assertEqual(AssessmentQuestion.objects.filter(framework=framework).count(), 14)
         self.assertIn("Seeded AIGOV v1.0", output.getvalue())

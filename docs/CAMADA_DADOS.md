@@ -76,6 +76,10 @@ Gerar snapshots de metricas para dashboards:
 - `/api/assessment-dimensions/`
 - `/api/assessment-questions/`
 - `/api/assessments/`
+- `/api/assessments/{uuid}/questionnaire/`
+- `/api/assessments/{uuid}/submit/`
+- `/api/assessments/{uuid}/summary/`
+- `/api/assessments/{uuid}/generate-mitigation-plan/`
 - `/api/assessment-answers/`
 - `/api/maturity-scores/`
 - `/api/recommendations/`
@@ -104,6 +108,14 @@ Gerar snapshots de metricas para dashboards:
 - `EvidenceLink` deve apontar para exatamente um alvo.
 - `RiskControl` liga riscos e controles sem duplicar pares.
 - Eventos de auditoria sao expostos como API somente leitura.
+- O framework inicial `AIGOV` cobre os blocos do MVP de avaliacao guiada.
+- Respostas descritivas de finalidade e dados compartilhados sao obrigatorias.
+- A submissao de assessment recalcula `MaturityScore` e gera recomendacoes
+  iniciais por dimensao com maturidade abaixo de 80%.
+- A geracao de plano de mitigacao cria riscos, avaliacoes de risco, vinculos
+  com controles, planos de acao e itens de acao para dimensoes abaixo de 80%.
+- A severidade de riscos gerados e derivada de `likelihood * impact`.
+- A geracao de mitigacao e idempotente para o mesmo assessment.
 
 ## Validacao atual
 

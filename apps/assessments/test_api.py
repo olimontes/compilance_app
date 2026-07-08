@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -87,6 +88,102 @@ class AssessmentApiTests(APITestCase):
         answer = AssessmentAnswer.objects.get(assessment=assessment, question=self.question)
         self.assertEqual(answer.answered_by, self.user)
         self.assertTrue(AuditEvent.objects.filter(event_type="assessment_answer.created").exists())
+
+    def test_descriptive_answer_requires_text(self):
+        call_command("seed_assessment_frameworks", verbosity=0)
+        assessment = Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=self.user,
+            title="2026 AI governance assessment",
+        )
+        question = AssessmentQuestion.objects.get(framework=self.framework, code="purpose-002")
+
+        response = self.client.post(
+            "/api/assessment-answers/",
+            {
+                "assessment": str(assessment.uuid),
+                "question": str(question.uuid),
+                "value": {"text": ""},
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_get_assessment_questionnaire(self):
+        call_command("seed_assessment_frameworks", verbosity=0)
+        assessment = Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=self.user,
+            title="2026 AI governance assessment",
+        )
+
+        response = self.client.get(f"/api/assessments/{assessment.uuid}/questionnaire/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        payload = response.json()
+        self.assertEqual(payload["framework"]["code"], "AIGOV")
+        dimension_codes = {dimension["code"] for dimension in payload["dimensions"]}
+        self.assertTrue(
+            {
+                "tooling",
+                "usage-area",
+                "purpose",
+                "data-sharing",
+                "ai-decisions",
+                "human-review",
+                "governance",
+                "security",
+                "dependency",
+            }.issubset(dimension_codes)
+        )
+        question_codes = {
+            question["code"]
+            for dimension in payload["dimensions"]
+            for question in dimension["questions"]
+        }
+        self.assertIn("purpose-002", question_codes)
+        self.assertIn("data-sharing-002", question_codes)
+
+    def test_submit_assessment_calculates_scores_and_recommendations(self):
+        call_command("seed_assessment_frameworks", verbosity=0)
+        assessment = Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=self.user,
+            title="2026 AI governance assessment",
+        )
+        self._answer_required_questions(assessment, false_question_codes={"security-001"})
+
+        response = self.client.post(f"/api/assessments/{assessment.uuid}/submit/", format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assessment.refresh_from_db()
+        self.assertEqual(assessment.status, Assessment.Status.SUBMITTED)
+        self.assertIsNotNone(assessment.submitted_at)
+        self.assertTrue(MaturityScore.objects.filter(assessment=assessment, dimension__isnull=True).exists())
+        self.assertTrue(Recommendation.objects.filter(assessment=assessment, dimension__code="security").exists())
+        self.assertTrue(AuditEvent.objects.filter(event_type="assessment.submitted").exists())
+        payload = response.json()
+        self.assertEqual(payload["status"], Assessment.Status.SUBMITTED)
+        self.assertIsNotNone(payload["overall_score"])
+        self.assertTrue(payload["recommendations"])
+
+    def test_submit_assessment_requires_all_required_answers(self):
+        call_command("seed_assessment_frameworks", verbosity=0)
+        assessment = Assessment.objects.create(
+            organization=self.organization,
+            framework=self.framework,
+            created_by=self.user,
+            title="2026 AI governance assessment",
+        )
+
+        response = self.client.post(f"/api/assessments/{assessment.uuid}/submit/", format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("missing_required_questions", response.json())
 
     def test_create_maturity_score_and_recommendation(self):
         assessment = Assessment.objects.create(
@@ -197,3 +294,19 @@ class AssessmentApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def _answer_required_questions(self, assessment, false_question_codes=None):
+        false_question_codes = false_question_codes or set()
+        for question in AssessmentQuestion.objects.filter(framework=assessment.framework):
+            if not question.is_required:
+                continue
+            if question.answer_type == AssessmentQuestion.AnswerType.TEXT:
+                value = {"text": f"Detailed answer for {question.code}."}
+            else:
+                value = {"answer": question.code not in false_question_codes}
+            AssessmentAnswer.objects.create(
+                assessment=assessment,
+                question=question,
+                answered_by=self.user,
+                value=value,
+            )

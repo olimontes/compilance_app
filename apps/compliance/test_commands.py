@@ -17,9 +17,10 @@ class SeedControlsCommandTests(TestCase):
         call_command("seed_controls", organization_slug=organization.slug, stdout=output)
         call_command("seed_controls", organization_slug=organization.slug, stdout=output)
 
-        self.assertEqual(Control.objects.filter(organization=organization).count(), 5)
+        self.assertEqual(Control.objects.filter(organization=organization).count(), 8)
         self.assertTrue(Control.objects.filter(organization=organization, code="GOV-001").exists())
-        self.assertIn("Seeded 5 controls", output.getvalue())
+        self.assertTrue(Control.objects.filter(organization=organization, code="HUM-001").exists())
+        self.assertIn("Seeded 8 controls", output.getvalue())
 
     def test_seed_controls_requires_existing_organization(self):
         with self.assertRaises(CommandError):

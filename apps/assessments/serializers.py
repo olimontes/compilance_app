@@ -16,6 +16,7 @@ from .models import (
     MaturityScore,
     Recommendation,
 )
+from .services import extract_text_answer, is_required_descriptive_question
 
 
 class AssessmentFrameworkSerializer(serializers.ModelSerializer):
@@ -144,8 +145,11 @@ class AssessmentAnswerSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         assessment = serializer_field_value(self, attrs, "assessment")
         question = serializer_field_value(self, attrs, "question")
+        value = serializer_field_value(self, attrs, "value")
         if assessment and question and question.framework_id != assessment.framework_id:
             raise serializers.ValidationError({"question": "Question must belong to the assessment framework."})
+        if question and is_required_descriptive_question(question) and not extract_text_answer(value):
+            raise serializers.ValidationError({"value": "This descriptive answer is required."})
         return attrs
 
 
