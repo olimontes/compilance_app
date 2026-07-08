@@ -47,6 +47,12 @@ Carregar controles padrao para uma organizacao:
 .\.venv\Scripts\python manage.py seed_controls --organization-slug=<slug-da-organizacao>
 ```
 
+Executar checks de qualidade de dados:
+
+```powershell
+.\.venv\Scripts\python manage.py run_data_quality_checks
+```
+
 ## Endpoints principais
 
 - `/api/organizations/`
